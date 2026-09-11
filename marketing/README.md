@@ -35,7 +35,7 @@ The renderer uses installed Google Chrome on macOS when available, otherwise Rem
 
 ## Credits and sources
 
-- Product: Duo View — https://duo-view-safa.netlify.app/
+- Product: Duo View — https://duo-view.netlify.app/
 - Phone geometry and FIELDNOTES website: original assets from https://github.com/SafaElmali/duo-view. Website images captured from `/demo.html` at 466 × 678, 626 × 890, and 890 × 626 CSS pixels, device scale factor 2, using Microlink's full-page screenshot API. They remain fully bundled for reproducible rendering.
 - Video: **Sintel © Blender Foundation**, CC BY 3.0. https://durian.blender.org/sharing/ · https://creativecommons.org/licenses/by/3.0/. The bundled clip is an eight-second excerpt, starting at 14 seconds, from the app's existing teaser sourced from https://www.w3.org/2010/05/video/mediaevents. It is cropped and presented on the phone's display; audio is removed. Credit appears during the streaming scene.
 - Music: “Duo pulse”, an original synthesized score created for this film. No sampled or licensed commercial music.
