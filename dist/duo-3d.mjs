@@ -5,6 +5,7 @@ import {createDuoPlayer} from './duo-player.mjs?v=2';
 import {dimensions} from './simulator.mjs';
 import {createSnapshotScroller} from './snapshot-scroll.mjs';
 import {cameraMove,cameraAt} from './camera-motion.mjs';
+import {bindCameraGestures} from './camera-gestures.mjs';
 export function createDuoViewer(host){
  const canvas=host.querySelector('canvas'),surfaceHost=host.querySelector('.duo-web-layer');
  const renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor(0xffffff,0);
@@ -22,14 +23,14 @@ export function createDuoViewer(host){
  const snapshotScroll=createSnapshotScroller([iframe,...splitSurfaces.map(surface=>surface.iframe)]);
  const player=createDuoPlayer();const cover=document.createElement('div');cover.className='duo-player-cover';web.append(cover);
  const fallback=host.querySelector('.duo-model-message');
- let state=null,angle=180,target=180,roll=0,targetRoll=0,yaw=-.22,pitch=.14,zoom=1,active=false,frame=0,last=0,drag=null,interact=false,live=false,disposed=false,cameraAnimation=null;
+ let state=null,angle=180,target=180,roll=0,targetRoll=0,yaw=-.22,pitch=.14,zoom=1,active=false,frame=0,last=0,interact=false,live=false,disposed=false,cameraAnimation=null;
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const getMode=()=>angle<4?'folded':'open';
  const playingDemo=()=>state?.content==='player';
  const snapshotMode=()=>Boolean(state?.snapshotPage)&&!playingDemo();
  function defaultCamera(){return {yaw:state?.pose==='tabletop'?-.26:-.22,pitch:state?.pose==='tabletop'?-.8:.14,zoom:1};}
  function animateCamera(destination,immediate=false){
-  drag=null;cameraAnimation=cameraMove({yaw,pitch,zoom},destination,performance.now(),{reducedMotion:reduce||immediate});wake();
+  cameraAnimation=cameraMove({yaw,pitch,zoom},destination,performance.now(),{reducedMotion:reduce||immediate});wake();
  }
  function poseCamera(immediate=false){animateCamera({...defaultCamera(),zoom},immediate);}
  function wake(){if(active&&!frame&&!document.hidden&&!disposed)frame=requestAnimationFrame(render);}
@@ -82,7 +83,7 @@ export function createDuoViewer(host){
   if(cameraAnimation){const next=cameraAt(cameraAnimation,now);yaw=next.yaw;pitch=next.pitch;zoom=next.zoom;cameraDistance();if(next.done)cameraAnimation=null;}
   const dt=Math.min((now-last)/1000,.05);last=now;const speed=reduce?1:1-Math.exp(-11*dt);angle=T.MathUtils.lerp(angle,target,speed);roll=T.MathUtils.lerp(roll,targetRoll,speed);if(Math.abs(angle-target)<.015)angle=target;if(Math.abs(roll-targetRoll)<.001)roll=targetRoll;phone.fold(angle);center.position.x=MODEL.halfWidth*(1-Math.max(0,Math.cos((180-angle)*Math.PI/180)))/2;center.position.z=-MODEL.halfWidth*Math.sin((180-angle)*Math.PI/180)/2;orbit.rotation.set(pitch,yaw,roll);scene.updateMatrixWorld(true);syncWeb();renderer.render(scene,camera);cssRenderer.render(cssScene,camera);host.dataset.rendered='true';if(cameraAnimation||Math.abs(angle-target)>.01||Math.abs(roll-targetRoll)>.001)wake();}
  function interactionLabel(){return interact?'Rotate model':snapshotMode()?'Scroll preview':playingDemo()?'Use player':'Use website';}
- function message(){if(snapshotMode()){fallback.textContent=interact?'Scroll or swipe on either screen · Both halves move together.':'Drag to rotate · Choose “Scroll preview” to explore the page.';return;}fallback.textContent=playingDemo()?(interact?'Play, pause, and scrub on the lower screen.':'Drag to rotate · Choose “Use player” for playback controls.'):(live?(target>1&&target<179?'Two page views across the bend. Open flat to interact.':'Drag to rotate. Choose “Use website” to interact.'):'Enter a website URL to preview it on the phone.');}
+ function message(){if(snapshotMode()){fallback.textContent=interact?'Scroll or swipe on either screen · Both halves move together.':'Drag to rotate · Choose “Scroll preview” to explore the page.';return;}fallback.textContent=playingDemo()?(interact?'Two-finger swipe or drag the video to rotate · Playback controls stay active.':'Two-finger swipe or drag to rotate · Choose “Use player” for playback controls.'):(live?(target>1&&target<179?'Two page views across the bend. Open flat to interact.':'Drag to rotate. Choose “Use website” to interact.'):'Enter a website URL to preview it on the phone.');}
  function update(next){const previousPose=state?.pose,wasPlayer=playingDemo(),wasSnapshot=snapshotMode();state={...next};target=next.foldAngle??(next.display==='folded'?0:180);targetRoll=modelRoll(next.display,next.orientation);phone.finish(next.finish||'white');if(previousPose!==state.pose)poseCamera(previousPose===undefined);
   if(snapshotMode()&&!wasSnapshot||playingDemo()&&!wasPlayer)interact=true;
   if(!snapshotMode()&&!playingDemo()&&target>1&&target<179)interact=false;
@@ -94,7 +95,7 @@ export function createDuoViewer(host){
    else{frame.removeAttribute('srcdoc');const targetSrc=enabled?src:'about:blank';if(frame.getAttribute('src')!==targetSrc)frame.src=targetSrc;}
   }
   source(iframe,true);for(const surface of splitSurfaces)source(surface.iframe,snapshotMode()||target>1&&target<179);
-  const button=host.querySelector('.duo-interact');button.disabled=!snapshotMode()&&!playingDemo()&&(!live||target>1&&target<179);button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);message();wake();}
+  const button=host.querySelector('.duo-interact');button.disabled=!snapshotMode()&&!playingDemo()&&(!live||target>1&&target<179);button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);host.classList.toggle('has-player',playingDemo());message();wake();}
  function setActive(value){active=value;if(!active){player.pause();if(frame){cancelAnimationFrame(frame);frame=0;}}surfaceHost.hidden=!active;if(active)resize();}
  function reset(){animateCamera(defaultCamera());}
  function startPlayer(){
@@ -103,15 +104,18 @@ export function createDuoViewer(host){
   const button=host.querySelector('.duo-interact');button.setAttribute('aria-pressed','true');button.textContent=interactionLabel();
   message();wake();player.start();
  }
- canvas.tabIndex=0;canvas.setAttribute('aria-label','3D iPhone Duo. Drag to rotate. Arrow keys rotate and tilt. Home resets the view.');
- canvas.addEventListener('pointerdown',event=>{if(interact)return;cameraAnimation=null;drag={x:event.clientX,y:event.clientY,yaw,pitch};canvas.setPointerCapture(event.pointerId);});
- canvas.addEventListener('pointermove',event=>{if(!drag)return;yaw=drag.yaw+(event.clientX-drag.x)*.009;pitch=T.MathUtils.clamp(drag.pitch+(event.clientY-drag.y)*.007,-1.15,1.15);wake();});
- for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>drag=null);
+ canvas.tabIndex=0;canvas.setAttribute('aria-label','3D iPhone Duo. Drag or two-finger swipe to rotate. Pinch to zoom. Arrow keys rotate and tilt. Home resets the view.');
+ const removeGestures=bindCameraGestures(host,{
+  canRotate:()=>active&&(!interact||playingDemo()),
+  onStart:()=>{cameraAnimation=null;canvas.focus({preventScroll:true});},
+  onRotate:(dx,dy)=>{cameraAnimation=null;yaw+=dx*.009;pitch=T.MathUtils.clamp(pitch+dy*.007,-1.15,1.15);wake();},
+  onZoom:delta=>{zoom=T.MathUtils.clamp(zoom*Math.exp(-delta*.01),.7,1.4);cameraDistance();wake();}
+ });
  canvas.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','+','-'].includes(event.key))return;event.preventDefault();cameraAnimation=null;if(event.key==='ArrowLeft')yaw-=.16;if(event.key==='ArrowRight')yaw+=.16;if(event.key==='ArrowUp')pitch=Math.max(-1.15,pitch-.12);if(event.key==='ArrowDown')pitch=Math.min(1.15,pitch+.12);if(event.key==='Home')reset();if(event.key==='+')zoom=Math.min(1.4,zoom+.1);if(event.key==='-')zoom=Math.max(.7,zoom-.1);resize();});
  host.querySelector('.duo-reset').addEventListener('click',reset);
  host.querySelector('.duo-back').addEventListener('click',()=>{const destination=cameraAnimation?.to.yaw??yaw;animateCamera({yaw:Math.cos(destination)>=0?Math.PI-.2:defaultCamera().yaw});interact=false;host.classList.remove('use-website');host.querySelector('.duo-interact').setAttribute('aria-pressed','false');host.querySelector('.duo-interact').textContent=interactionLabel();message();wake();});
  host.querySelector('.duo-interact').addEventListener('click',event=>{interact=!interact;host.classList.toggle('use-website',interact);event.currentTarget.setAttribute('aria-pressed',String(interact));event.currentTarget.textContent=interactionLabel();message();wake();});
  new ResizeObserver(resize).observe(host);document.addEventListener('visibilitychange',wake);
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();active=false;surfaceHost.hidden=true;fallback.textContent='3D graphics paused. Reload to restore, or use the 2D preview.';});
- return {update,setActive,reset,startPlayer,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){iframe.src=live?state.url:'about:blank';for(const surface of splitSurfaces)if(surface.iframe.getAttribute('src')!=='about:blank')surface.iframe.src=state.url;}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
+ return {update,setActive,reset,startPlayer,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){iframe.src=live?state.url:'about:blank';for(const surface of splitSurfaces)if(surface.iframe.getAttribute('src')!=='about:blank')surface.iframe.src=state.url;}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;removeGestures();cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
 }
