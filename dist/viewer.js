@@ -38,7 +38,7 @@ function renderPreviewMode(){
  $('#snapshot-notice').hidden=!isSnapshot();
  if(isSnapshot()){
   const record=captures.get(captureKey(dimensions(state.display,state.orientation,state.chrome,state.custom)));
-  $('#snapshot-status').textContent=record?.error?'Capture unavailable':record?.image?'Snapshot ready':'Rendering…';
+  $('#snapshot-status').textContent=record?.error?'Capture unavailable':record?.image?(record.height>dimensions(state.display,state.orientation,state.chrome,state.custom).contentHeight?'Ready · Scroll on the phone':'Ready · Single-screen capture'):'Rendering…';
  }
 }
 function changeMode(mode){
@@ -177,7 +177,11 @@ function updateModel(){
     try{modelViewer=createDuoViewer($('#duo-render-host'));}
     catch(error){modelFailed=true;$('#duo-render-host .duo-model-message').textContent='3D graphics are unavailable in this browser. The 2D preview is still available.';console.warn('3D preview unavailable',error);}
   }
-  if(modelViewer){const snapshotPage=isSnapshot()&&state.view==='three'?snapshotDocument(getCapture(dimensions(state.display,state.orientation,state.chrome,state.custom))):null;modelViewer.update({...state,demo:isDemo(),snapshotPage});modelViewer.setActive(state.view==='three');}
+  if(modelViewer){
+    const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
+    const snapshot=isSnapshot()&&state.view==='three'?{...getCapture(size),key:captureKey(size),contentHeight:size.contentHeight}:null;
+    modelViewer.update({...state,demo:isDemo(),snapshot,snapshotPage:snapshot?snapshotDocument(snapshot):null});modelViewer.setActive(state.view==='three');
+  }
 }
 $('#fold-angle').addEventListener('input',event=>{state.foldAngle=Number(event.target.value);state.display=state.foldAngle<4?'folded':'open';state.custom=null;update();});
 $$('[data-finish]').forEach(button=>button.addEventListener('click',()=>{state.finish=button.dataset.finish;$$('[data-finish]').forEach(item=>{const active=item.dataset.finish===state.finish;item.classList.toggle('selected',active);item.setAttribute('aria-pressed',String(active));});updateModel();}));
@@ -189,7 +193,7 @@ update();
 // Optional imperative tools share the same validated state transitions as the controls.
 if(document.modelContext?.registerTool){
   const lifecycle=new AbortController();
-  const previewTool={name:'configure_website_preview',title:'Configure website preview',description:'Show a website inside the iPhone Duo preview. Live preview embeds the page. Snapshot sends a public URL to Microlink to capture an image at the selected size; it is not interactive.',inputSchema:{type:'object',properties:{url:{type:'string'},display:{type:'string',enum:['folded','open']},orientation:{type:'string',enum:['portrait','landscape']},view:{type:'string',enum:['three','single','compare']},foldAngle:{type:'number',minimum:0,maximum:180},finish:{type:'string',enum:['white','night']},pose:{type:'string',enum:['tabletop','book','flat']},content:{type:'string',enum:['website','player']},mode:{type:'string',enum:['embedded','snapshot']}},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute(input){
+  const previewTool={name:'configure_website_preview',title:'Configure website preview',description:'Show a website inside the iPhone Duo preview. Live preview embeds the page. Snapshot sends a public URL to Microlink to capture a scrollable full-page image at the selected viewport size; links are not interactive.',inputSchema:{type:'object',properties:{url:{type:'string'},display:{type:'string',enum:['folded','open']},orientation:{type:'string',enum:['portrait','landscape']},view:{type:'string',enum:['three','single','compare']},foldAngle:{type:'number',minimum:0,maximum:180},finish:{type:'string',enum:['white','night']},pose:{type:'string',enum:['tabletop','book','flat']},content:{type:'string',enum:['website','player']},mode:{type:'string',enum:['embedded','snapshot']}},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute(input){
     if(!input||typeof input!=='object'||Object.keys(input).some(key=>!['url','display','orientation','view','foldAngle','finish','pose','content','mode'].includes(key)))throw new Error('Invalid preview options.');
     if(input.display!==undefined&&!['folded','open'].includes(input.display))throw new Error('Invalid display.');
     if(input.orientation!==undefined&&!['portrait','landscape'].includes(input.orientation))throw new Error('Invalid orientation.');

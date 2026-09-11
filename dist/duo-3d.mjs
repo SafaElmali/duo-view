@@ -3,6 +3,7 @@ import {CSS3DRenderer,CSS3DObject} from './assets/three/CSS3DRenderer.js';
 import {createDuoModel,MODEL,modelRoll} from './duo-model.mjs';
 import {createDuoPlayer} from './duo-player.mjs';
 import {dimensions} from './simulator.mjs';
+import {createSnapshotScroller} from './snapshot-scroll.mjs';
 export function createDuoViewer(host){
  const canvas=host.querySelector('canvas'),surfaceHost=host.querySelector('.duo-web-layer');
  const renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor(0xffffff,0);
@@ -17,6 +18,7 @@ export function createDuoViewer(host){
  const web=document.createElement('div');web.className='duo-live-screen';web.innerHTML='<div class="browser-chrome" hidden><div class="status-bar"><span>9:41</span><span class="status-camera"></span><span>▰</span></div><div class="browser-address"><span>aA</span><span class="duo-live-host">Demo website</span><span>↻</span></div></div><iframe title="Website on the 3D iPhone Duo" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="browser-bottom" hidden><span></span></div><span class="duo-live-hinge" aria-hidden="true"></span>';
  const iframe=web.querySelector('iframe');const cssObject=new CSS3DObject(web);cssScene.add(cssObject);
  const splitSurfaces=[0,1].map(index=>{const clip=document.createElement('div');clip.className='duo-split-screen';const page=web.cloneNode(true);page.className='duo-split-page';page.querySelector('.duo-live-hinge').remove();page.querySelector('iframe').title=`Website ${index===0?'first':'second'} half`;clip.append(page);const object=new CSS3DObject(clip);cssScene.add(object);return {clip,page,object,iframe:page.querySelector('iframe')};});
+ const snapshotScroll=createSnapshotScroller([iframe,...splitSurfaces.map(surface=>surface.iframe)]);
  const player=createDuoPlayer();const cover=document.createElement('div');cover.className='duo-player-cover';web.append(cover);
  const fallback=host.querySelector('.duo-model-message');
  let state=null,angle=180,target=180,roll=0,targetRoll=0,yaw=-.22,pitch=.14,zoom=1,active=false,frame=0,last=0,drag=null,interact=false,live=false,disposed=false;
@@ -38,7 +40,7 @@ export function createDuoViewer(host){
    object.scale.set((portrait?MODEL.innerHeight:MODEL.innerWidth/2)/cropW,(portrait?MODEL.innerWidth/2:MODEL.innerHeight)/cropH,1);
    clip.style.width=`${cropW}px`;clip.style.height=`${cropH}px`;clip.style.borderRadius=portrait?(index===0?'0 0 29px 29px':'29px 29px 0 0'):(index===0?'29px 0 0 29px':'0 29px 29px 0');
    const normal=new T.Vector3(0,0,1).applyQuaternion(object.quaternion),visible=show&&normal.dot(camera.position.clone().sub(object.position))>0;
-   clip.style.visibility=visible?'visible':'hidden';clip.classList.toggle('duo-interactive',isPlayer&&interact);clip.classList.toggle('is-player',isPlayer);
+   clip.style.visibility=visible?'visible':'hidden';clip.classList.toggle('duo-interactive',(isPlayer||snapshotMode())&&interact);clip.classList.toggle('is-player',isPlayer);clip.classList.toggle('is-snapshot',snapshotMode());part.tabIndex=visible&&interact?0:-1;
    page.hidden=isPlayer;page.style.width=`${size.width}px`;page.style.height=`${size.height}px`;page.style.transform=`translate(${portrait?0:-index*cropW}px,${portrait&&index===0?-cropH:0}px)`;
    part.width=String(size.width);part.height=String(size.contentHeight);part.style.height=`${size.contentHeight}px`;page.querySelectorAll('.browser-chrome,.browser-bottom').forEach(element=>element.hidden=!state.chrome);
    if(isPlayer&&getMode()==='open'){const element=(portrait?index===1:index===0)?player.top:player.bottom;mount(clip,element);}
@@ -67,20 +69,24 @@ export function createDuoViewer(host){
   const cutoutVisible=isPlayer?(isOpen||angle<.8):live&&(endpoint||(angle>4&&angle<179.2));
   phone.displays.forEach((mesh,index)=>{const cutout=cutoutVisible&&(isOpen?index<2:index===2);mesh.material=cutout?screenCutout:wallpaperMaterials[index];mesh.renderOrder=cutout?10:0;});
   web.classList.toggle('duo-interactive',interact);
+  iframe.tabIndex=web.style.visibility==='visible'&&interact?0:-1;
   web.querySelector('.duo-live-hinge').hidden=!isOpen||!state.hinge;web.querySelector('.duo-live-hinge').classList.toggle('horizontal',state.orientation==='portrait');
  }
  function render(now){frame=0;if(!active||disposed)return;const dt=Math.min((now-last)/1000,.05);last=now;const speed=reduce?1:1-Math.exp(-11*dt);angle=T.MathUtils.lerp(angle,target,speed);roll=T.MathUtils.lerp(roll,targetRoll,speed);if(Math.abs(angle-target)<.015)angle=target;if(Math.abs(roll-targetRoll)<.001)roll=targetRoll;phone.fold(angle);center.position.x=MODEL.halfWidth*(1-Math.max(0,Math.cos((180-angle)*Math.PI/180)))/2;center.position.z=-MODEL.halfWidth*Math.sin((180-angle)*Math.PI/180)/2;orbit.rotation.set(pitch,yaw,roll);scene.updateMatrixWorld(true);syncWeb();renderer.render(scene,camera);cssRenderer.render(cssScene,camera);host.dataset.rendered='true';if(Math.abs(angle-target)>.01||Math.abs(roll-targetRoll)>.001)wake();}
- function message(){if(snapshotMode()){fallback.textContent='Website snapshot · Drag to rotate and inspect the fold.';return;}fallback.textContent=playingDemo()?(interact?'Play, pause, and scrub on the lower screen.':'Drag to rotate · Choose “Use player” for playback controls.'):(live?(target>1&&target<179?'Two page views across the bend. Open flat to interact.':'Drag to rotate. Choose “Use website” to interact.'):'Enter a website URL to preview it on the phone.');}
- function update(next){const previousPose=state?.pose,wasPlayer=playingDemo();state={...next};target=next.foldAngle??(next.display==='folded'?0:180);targetRoll=modelRoll(next.display,next.orientation);phone.finish(next.finish||'white');if(previousPose!==state.pose)poseCamera();
-  if(snapshotMode()||!playingDemo()&&target>1&&target<179)interact=false;
+ function interactionLabel(){return interact?'Rotate model':snapshotMode()?'Scroll preview':playingDemo()?'Use player':'Use website';}
+ function message(){if(snapshotMode()){fallback.textContent=interact?'Scroll or swipe on either screen · Both halves move together.':'Drag to rotate · Choose “Scroll preview” to explore the page.';return;}fallback.textContent=playingDemo()?(interact?'Play, pause, and scrub on the lower screen.':'Drag to rotate · Choose “Use player” for playback controls.'):(live?(target>1&&target<179?'Two page views across the bend. Open flat to interact.':'Drag to rotate. Choose “Use website” to interact.'):'Enter a website URL to preview it on the phone.');}
+ function update(next){const previousPose=state?.pose,wasPlayer=playingDemo(),wasSnapshot=snapshotMode();state={...next};target=next.foldAngle??(next.display==='folded'?0:180);targetRoll=modelRoll(next.display,next.orientation);phone.finish(next.finish||'white');if(previousPose!==state.pose)poseCamera();
+  if(snapshotMode()&&!wasSnapshot)interact=true;
+  if(!snapshotMode()&&!playingDemo()&&target>1&&target<179)interact=false;
+  snapshotScroll.update(snapshotMode()?next.snapshot:null);
   if(wasPlayer&&!playingDemo())player.pause();
   live=next.demo||next.mode==='embedded'||snapshotMode();const src=live&&!playingDemo()?next.url:'about:blank';
   function source(frame,enabled){
    if(snapshotMode()&&enabled){if(frame.getAttribute('src')!=='about:blank')frame.src='about:blank';if(frame.srcdoc!==next.snapshotPage)frame.srcdoc=next.snapshotPage;}
    else{frame.removeAttribute('srcdoc');const targetSrc=enabled?src:'about:blank';if(frame.getAttribute('src')!==targetSrc)frame.src=targetSrc;}
   }
-  source(iframe,true);for(const surface of splitSurfaces)source(surface.iframe,target>1&&target<179);
-  const button=host.querySelector('.duo-interact');button.disabled=snapshotMode()||!playingDemo()&&(!live||target>1&&target<179);button.setAttribute('aria-pressed',String(interact));button.textContent=snapshotMode()?'Snapshot':interact?'Rotate model':playingDemo()?'Use player':'Use website';host.classList.toggle('use-website',interact);message();wake();}
+  source(iframe,true);for(const surface of splitSurfaces)source(surface.iframe,snapshotMode()||target>1&&target<179);
+  const button=host.querySelector('.duo-interact');button.disabled=!snapshotMode()&&!playingDemo()&&(!live||target>1&&target<179);button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);message();wake();}
  function setActive(value){active=value;if(!active){player.pause();if(frame){cancelAnimationFrame(frame);frame=0;}}surfaceHost.hidden=!active;if(active)resize();}
  function reset(){poseCamera();zoom=1;resize();}
  canvas.tabIndex=0;canvas.setAttribute('aria-label','3D iPhone Duo. Drag to rotate. Arrow keys rotate and tilt. Home resets the view.');
@@ -89,9 +95,9 @@ export function createDuoViewer(host){
  for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>drag=null);
  canvas.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','+','-'].includes(event.key))return;event.preventDefault();if(event.key==='ArrowLeft')yaw-=.16;if(event.key==='ArrowRight')yaw+=.16;if(event.key==='ArrowUp')pitch=Math.max(-1.15,pitch-.12);if(event.key==='ArrowDown')pitch=Math.min(1.15,pitch+.12);if(event.key==='Home')reset();if(event.key==='+')zoom=Math.min(1.4,zoom+.1);if(event.key==='-')zoom=Math.max(.7,zoom-.1);resize();});
  host.querySelector('.duo-reset').addEventListener('click',reset);
- host.querySelector('.duo-back').addEventListener('click',()=>{yaw=Math.abs(yaw)<1?Math.PI-.2:-.22;interact=false;host.classList.remove('use-website');host.querySelector('.duo-interact').setAttribute('aria-pressed','false');host.querySelector('.duo-interact').textContent=snapshotMode()?'Snapshot':playingDemo()?'Use player':'Use website';message();wake();});
- host.querySelector('.duo-interact').addEventListener('click',event=>{interact=!interact;host.classList.toggle('use-website',interact);event.currentTarget.setAttribute('aria-pressed',String(interact));event.currentTarget.textContent=interact?'Rotate model':playingDemo()?'Use player':'Use website';message();wake();});
+ host.querySelector('.duo-back').addEventListener('click',()=>{yaw=Math.abs(yaw)<1?Math.PI-.2:-.22;interact=false;host.classList.remove('use-website');host.querySelector('.duo-interact').setAttribute('aria-pressed','false');host.querySelector('.duo-interact').textContent=interactionLabel();message();wake();});
+ host.querySelector('.duo-interact').addEventListener('click',event=>{interact=!interact;host.classList.toggle('use-website',interact);event.currentTarget.setAttribute('aria-pressed',String(interact));event.currentTarget.textContent=interactionLabel();message();wake();});
  new ResizeObserver(resize).observe(host);document.addEventListener('visibilitychange',wake);
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();active=false;surfaceHost.hidden=true;fallback.textContent='3D graphics paused. Reload to restore, or use the 2D preview.';});
- return {update,setActive,reset,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){iframe.src=live?state.url:'about:blank';for(const surface of splitSurfaces)if(surface.iframe.getAttribute('src')!=='about:blank')surface.iframe.src=state.url;}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;cancelAnimationFrame(frame);phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
+ return {update,setActive,reset,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){iframe.src=live?state.url:'about:blank';for(const surface of splitSurfaces)if(surface.iframe.getAttribute('src')!=='about:blank')surface.iframe.src=state.url;}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
 }
