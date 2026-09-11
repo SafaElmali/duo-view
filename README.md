@@ -1,0 +1,39 @@
+# Duo View
+
+A responsive website preview for iPhone Duo: folded/open × portrait/landscape, side-by-side comparison, optional browser chrome and hinge guide, editable dimensions, zoom, and fullscreen. Includes a responsive interactive demo.
+
+## Local use
+
+Serve `dist` with an HTTP server. There is no build or installation step. Run `node --test tests/*.test.mjs` for viewport, URL, and 3D model validation.
+
+## Deploy to Netlify
+
+Connect this repository to Netlify. The included `netlify.toml` runs the tests and publishes `dist`; no environment variables or API keys are required. Changes pushed to `main` deploy automatically once the repository is connected.
+
+## Accuracy and limitations
+
+- Presets derive from Apple's published screen resolutions with an **assumed 3× scale**: 466 × 678 outer and 626 × 890 inner. These are estimates, not confirmed Safari CSS viewport dimensions. Source: https://www.apple.com/iphone-duo/specs/
+- Rendering happens in the current desktop browser using real iframe viewport dimensions. It does not emulate iOS Safari, device pixel ratio, user agent, safe-area environment variables, touch hardware, or foldable screen-segment APIs.
+- Browser chrome reserves an illustrative 102 CSS pixels. The hinge is a pointer-transparent visual guide; content remains continuous.
+- External pages in Live preview must allow iframe embedding. CSP `frame-ancestors`, X-Frame-Options, mixed-content restrictions, third-party cookies, or authentication may prevent embedding. The tool does not bypass these restrictions or claim a remote site has loaded successfully.
+- Comparison creates four independent browsing contexts. Navigation and scroll position are not synchronized between cross-origin pages. Switching between four presets in single view retains the same browsing context.
+- URL credentials are rejected. Live preview loads the requested URL in the user’s browser. Snapshot explicitly sends public URLs and selected viewport dimensions to Microlink, then displays a still image on the device. Private/local addresses and obvious access-token parameters are rejected before any service request. No API key is stored. Snapshots are cached in memory by URL and dimensions, capped at 16 entries; captures have a 55-second timeout and explicit rate-limit/error states.
+- Keyboard: R rotates, F folds/unfolds, Escape exits the fullscreen fallback; keys apply while focus is in the simulator controls rather than inside an external website.
+- Optional WebMCP `configure_website_preview` shares the UI state transitions and supports Live preview (`embedded`) and `snapshot`. Snapshot tools disclose the public URL transfer to Microlink. Neither mode opens another browser window.
+
+
+## 3D model
+
+The simulator opens in the Tabletop pose with an interactive streaming player on an original Three.js model with two separately hinged halves, polished titanium and ceramic materials, camera lenses, side controls, antenna bands, USB-C, and speaker openings. The 0–180° hinge slider, two finish choices, front/back view, keyboard rotation, and portrait/landscape presets control the same model. It renders on demand and pauses when another view or browser tab is active.
+
+CSS3D surfaces follow the two physical halves at every hinge angle. The player keeps one video and one set of working controls as you change poses, with video above the hinge and controls below in Tabletop mode. Play/pause, seeking, ten-second skips, mute, speed, brightness, control locking, and video fullscreen are available. Use player enables interaction; Rotate model restores camera control. The movie is Sintel by Blender Foundation, licensed CC BY 3.0 (https://durian.blender.org/sharing/); the video and poster are from W3C’s sample (https://www.w3.org/2010/05/video/mediaevents). It is an independent player demo, not Netflix or a prediction of native iOS app behavior.
+
+For websites, two clipped page views maintain the full responsive viewport across the bend. These are independent browsing contexts and intentionally noninteractive at intermediate angles; open flat or close fully for interaction in a single frame. Website content is not automatically reorganized into app-specific controls. External embedding restrictions remain unchanged. Snapshot is the in-device alternative: one captured image is split across the hinge. The existing standalone launch route is retained for old links, but it is no longer used by the simulator. Local video testing requires a server with byte-range support for seeking.
+
+The downloadable `dist/assets/iphone-duo.glb` contains real geometry, PBR materials, named hinge nodes, and an Unfold animation. It is scaled to approximate meters. Regenerate it with `node scripts/export-model.mjs`. This is an illustrative model, not Apple CAD. Three.js and the CSS3DRenderer/GLTFExporter are version 0.180.0 under the included MIT license at `dist/assets/three/LICENSE`.
+
+Model verification includes endpoint geometry and screen-facing checks, all four orientation mappings, GLB binary structure, node hierarchy, and animation presence. Focused browser checks cover model rendering, both finishes, live demo interaction, and folding/orientation states.
+
+## In-device preview verification
+
+Verified Madisson Gold’s response blocks live embedding (`frame-ancestors none`, `X-Frame-Options: DENY`). Captured its public page at 626 × 890 through Microlink and verified the image appears across the tabletop hinge. Captures use an actual matching browser viewport and deviceScaleFactor 1, and reject mismatched output dimensions. Snapshot images cannot accept cookies, click links, scroll the original page, play video, or reproduce a signed-in session. Provider failures and rate limits remain possible. API references: https://microlink.io/docs/api/parameters/screenshot and https://microlink.io/docs/api/parameters/viewport.

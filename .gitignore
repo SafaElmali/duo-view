@@ -1,0 +1,8 @@
+.DS_Store
+.netlify/
+.openai/
+.sites-runtime/
+node_modules/
+.env
+.env.*
+!.env.example

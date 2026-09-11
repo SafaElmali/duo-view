@@ -1,0 +1,16 @@
+[build]
+  command = "node --test tests/*.test.mjs"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/*.mjs"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+
+[[headers]]
+  for = "/assets/iphone-duo.glb"
+  [headers.values]
+    Content-Type = "model/gltf-binary"
