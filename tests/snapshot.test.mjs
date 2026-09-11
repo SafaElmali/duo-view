@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {runInNewContext} from 'node:vm';
 import {validateSnapshotUrl,screenshotRequest,captureSnapshot,snapshotDocument} from '../dist/snapshot.mjs';
 
 test('private addresses and access-bearing URLs never reach the screenshot provider',()=>{
@@ -18,6 +19,20 @@ test('each orientation requests real viewport dimensions, not a resized desktop 
 test('a wrongly sized capture cannot be reported as a valid device preview',async context=>{
  context.mock.method(globalThis,'fetch',async()=>({ok:true,status:200,json:async()=>({status:'success',data:{screenshot:{url:'https://example.com/image.png',width:1200,height:1200}}})}));
  await assert.rejects(captureSnapshot('https://example.com/',{width:626,contentHeight:890}),/did not match/);
+});
+test('capture preparation paints deferred content without revealing intentionally hidden elements',()=>{
+ const deferred={contentVisibility:'auto',changes:[]},hidden={contentVisibility:'hidden',changes:[]};
+ for(const element of [deferred,hidden])element.style={setProperty:(...args)=>element.changes.push(args)};
+ const image=(visibility,rects)=>({loading:'lazy',visibility,getClientRects:()=>rects});
+ const offscreen=image('visible',[{}]),collapsed=image('visible',[]),invisible=image('hidden',[{}]);
+ const request=new URL(screenshotRequest('https://example.com/',{width:626,contentHeight:890}));
+ runInNewContext(request.searchParams.get('scripts'),{document:{querySelectorAll:()=>[deferred,hidden],images:[offscreen,collapsed,invisible]},getComputedStyle:element=>element});
+ assert.deepEqual(deferred.changes,[['content-visibility','visible','important']]);
+ assert.deepEqual(hidden.changes,[]);
+ assert.equal(offscreen.loading,'eager');
+ assert.equal(collapsed.loading,'lazy');
+ assert.equal(invisible.loading,'lazy');
+ assert.equal(request.searchParams.get('waitForTimeout'),'3000');
 });
 test('full-page captures preserve viewport width and accept a taller decoded image',async context=>{
  const shot={url:'https://example.com/full.png',width:626,height:15928};

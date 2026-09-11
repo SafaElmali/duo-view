@@ -1,5 +1,16 @@
 import {validDimension} from './simulator.mjs';
 
+// Microlink runs this in its capture browser, before taking the full-page image.
+// Offscreen rendering optimizations must not leave holes in that static image.
+export function prepareSnapshotPage(){
+ for(const element of document.querySelectorAll('*')){
+  if(getComputedStyle(element).contentVisibility==='auto')element.style.setProperty('content-visibility','visible','important');
+ }
+ for(const image of document.images){
+  if(image.loading==='lazy'&&image.getClientRects().length&&getComputedStyle(image).visibility!=='hidden')image.loading='eager';
+ }
+}
+
 export function validateSnapshotUrl(raw){
  const url=new URL(raw),host=url.hostname.toLowerCase();
  if(!['http:','https:'].includes(url.protocol)||url.username||url.password)throw new Error('Use a public website URL without login credentials.');
@@ -13,7 +24,7 @@ export function screenshotRequest(raw,size){
  const url=validateSnapshotUrl(raw);
  if(!validDimension(size.width)||!Number.isInteger(size.contentHeight)||size.contentHeight<138||size.contentHeight>1600)throw new Error('Choose valid preview dimensions.');
  const request=new URL('https://api.microlink.io/');
- request.search=new URLSearchParams({url,'screenshot.fullPage':'true',meta:'false','viewport.width':String(size.width),'viewport.height':String(size.contentHeight),'viewport.deviceScaleFactor':'1'});
+ request.search=new URLSearchParams({url,'screenshot.fullPage':'true',meta:'false','viewport.width':String(size.width),'viewport.height':String(size.contentHeight),'viewport.deviceScaleFactor':'1',scripts:`(${prepareSnapshotPage.toString()})()`,'waitForTimeout':'3000'});
  return request.href;
 }
 export async function captureSnapshot(raw,size,signal){
