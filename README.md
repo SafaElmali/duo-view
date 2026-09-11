@@ -10,11 +10,11 @@ Explore an animated 3D folding model, scroll full-page website snapshots across 
 
 ## Local use
 
-Serve `dist` with an HTTP server. There is no build or installation step. Run `node --test tests/*.test.mjs` for viewport, URL, and 3D model validation.
+Run `node scripts/serve.mjs` and open http://127.0.0.1:4317. This dependency-free Node.js 22+ server serves the app, the embedding check, and byte-range video playback. A plain static server still supports manual snapshots, but automatic fallback requires the included server or Netlify Functions. Run `node --test tests/*.test.mjs` for validation.
 
 ## Deploy to Netlify
 
-Connect this repository to Netlify. The included `netlify.toml` runs the tests and publishes `dist`; no environment variables or API keys are required. Changes pushed to `main` deploy automatically once the repository is connected.
+Connect this repository to Netlify. The included `netlify.toml` runs the tests and publishes `dist`; no environment variables or API keys are required. Changes pushed to `main` deploy automatically once the repository is connected. The `embed-check` Netlify Function checks public pages for embedding restrictions; no third-party credentials are required.
 
 ## Marketing video
 
@@ -35,11 +35,12 @@ The export is saved to `marketing/out/duo-view-marketing-1080p.mp4`. Generated e
 - Presets derive from Apple's published screen resolutions with an **assumed 3× scale**: 466 × 678 outer and 626 × 890 inner. These are estimates, not confirmed Safari CSS viewport dimensions. Source: https://www.apple.com/iphone-duo/specs/
 - Rendering happens in the current desktop browser using real iframe viewport dimensions. It does not emulate iOS Safari, device pixel ratio, user agent, safe-area environment variables, touch hardware, or foldable screen-segment APIs.
 - Browser chrome reserves an illustrative 102 CSS pixels. The hinge is a pointer-transparent visual guide; content remains continuous.
+- Live + auto fallback starts with an interactive iframe. A same-origin server endpoint checks the public page’s enforced CSP `frame-ancestors` and X-Frame-Options headers, following up to four redirects. Confirmed blocking policies automatically switch the current URL to a Microlink snapshot. Allowed or inconclusive checks retain Live preview and the manual Create snapshot action. Loading another URL tries live mode again after an automatic fallback; explicitly selected Snapshot mode stays selected. Stale checks cannot replace a newer URL, a manual mode change, or the player. The check sends no browser cookies, discards the response body, restricts ports and public IPv4 destinations, pins DNS resolution for each connection, and stops after eight seconds. Private URLs, fragments, and access-bearing query parameters are not checked. CSP syntax the checker cannot safely interpret is treated as inconclusive. Browser-specific errors, authentication, JavaScript frame busting, policy changes, and conditional server responses can still require manual fallback. Browser load events cannot reliably identify blocked iframes ([MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe)).
 - External pages in Live preview must allow iframe embedding. CSP `frame-ancestors`, X-Frame-Options, mixed-content restrictions, third-party cookies, or authentication may prevent embedding. The tool does not bypass these restrictions or claim a remote site has loaded successfully.
 - Comparison creates four independent browsing contexts. Navigation and scroll position are not synchronized between cross-origin pages. Switching between four presets in single view retains the same browsing context.
-- URL credentials are rejected. Live preview loads the requested URL in the user’s browser. Snapshot explicitly sends public URLs and selected viewport dimensions to Microlink, then displays a scrollable full-page image on the device. Private/local addresses and obvious access-token parameters are rejected before any service request. No API key is stored. Snapshots are cached in memory by URL and dimensions, capped at 16 entries; captures have a 55-second timeout and explicit rate-limit/error states.
+- URL credentials are rejected. Live preview loads the requested URL in the user’s browser. Snapshot, including automatic fallback for confirmed embedding restrictions, sends public URLs and selected viewport dimensions to Microlink, then displays a scrollable full-page image on the device. Private/local addresses and obvious access-token parameters are rejected before any service request. No API key is stored. Snapshots are cached in memory by URL and dimensions, capped at 16 entries; captures have a 55-second timeout and explicit rate-limit/error states.
 - Keyboard: R rotates, F folds/unfolds, Escape exits the fullscreen fallback; keys apply while focus is in the simulator controls rather than inside an external website.
-- Optional WebMCP `configure_website_preview` shares the UI state transitions and supports Live preview (`embedded`) and `snapshot`. Snapshot tools disclose the public URL transfer to Microlink. Neither mode opens another browser window.
+- Optional WebMCP `configure_website_preview` shares the UI state transitions and supports Live preview (`embedded`) and `snapshot`. The tool description discloses embedding checks and the public URL transfer to Microlink in either manual Snapshot mode or automatic fallback. Neither mode opens another browser window.
 
 
 ## 3D model

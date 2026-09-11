@@ -1,6 +1,7 @@
 import {createDuoViewer} from './duo-3d.mjs';
 import {dimensions,validDimension,normalizeUrl,fitScale} from './simulator.mjs';
 import {captureSnapshot,snapshotDocument,validateSnapshotUrl} from './snapshot.mjs';
+import {createEmbedFallback} from './embed-fallback.mjs';
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const demoUrl=new URL('demo.html',location.href).href;
@@ -14,6 +15,14 @@ const title=(display,orientation)=>`${display==='folded'?'Folded':'Open'} · ${o
 const isDemo=()=>state.url===demoUrl;
 const isSnapshot=()=>state.mode==='snapshot'&&!isDemo()&&state.content==='website';
 const captures=new Map();
+let automaticSnapshotUrl=null;
+const embedFallback=createEmbedFallback({
+ onChange:()=>renderPreviewMode(),
+ onBlocked:url=>{
+  if(state.url!==url||state.mode!=='embedded'||state.content!=='website')return;
+  automaticSnapshotUrl=url;state.mode='snapshot';update();
+ }
+});
 function captureKey(size){return `${state.url}|${size.width}|${size.contentHeight}`;}
 function getCapture(size){
  const key=captureKey(size);if(captures.has(key))return captures.get(key);
@@ -35,7 +44,11 @@ function syncFrameSources(){
 function renderPreviewMode(){
  $('#zoom').disabled=state.view==='three';$('#preview-mode').value=state.mode;
  $('#embed-notice').hidden=isDemo()||isSnapshot()||state.content==='player';
+ const checking=embedFallback.getState();
+ $('#embed-message').textContent=checking==='checking'?'Checking whether this page allows live preview…':checking==='local'?'Live preview only for local or private URLs.':checking==='unknown'?'Could not check this page. If it stays blank, create a snapshot.':'Live preview · Blocked pages switch to a snapshot automatically.';
+ $('#embed-fallback').disabled=checking==='local';
  $('#snapshot-notice').hidden=!isSnapshot();
+ $('#snapshot-reason').textContent=automaticSnapshotUrl===state.url?'This site blocks live preview. Showing a scrollable snapshot.':'Scrollable snapshot';
  if(isSnapshot()){
   const record=captures.get(captureKey(dimensions(state.display,state.orientation,state.chrome,state.custom)));
   $('#snapshot-status').textContent=record?.error?'Capture unavailable':record?.image?(record.height>dimensions(state.display,state.orientation,state.chrome,state.custom).contentHeight?'Ready · Scroll on the phone':'Ready · Single-screen capture'):'Rendering…';
@@ -47,7 +60,8 @@ function changeMode(mode){
   if(mode==='snapshot')validateSnapshotUrl(state.url);
   else normalizeUrl(state.url,location.href,{embedded:true});
  }
- state.mode=mode;update();
+ if(mode==='embedded')embedFallback.retry();
+ automaticSnapshotUrl=null;state.mode=mode;update();
 }
 $('#embed-fallback').addEventListener('click',()=>{try{changeMode('snapshot');}catch(error){urlError(error.message);}});
 $('#preview-mode').addEventListener('change',event=>{try{changeMode(event.target.value);}catch(error){event.target.value=state.mode;urlError(error.message);}});
@@ -79,6 +93,7 @@ function update(){
   renderPreviewMode();
   updateModel();
   requestFit();
+  embedFallback.update(state.url,state.content==='website'&&!isDemo()&&state.mode==='embedded');
 }
 function configureDevice(device,size,display,orientation){
   device.style.width=`${size.outerWidth}px`;device.style.height=`${size.outerHeight}px`;
@@ -125,7 +140,10 @@ function changeDisplay(display){state.pose='flat';if(!['folded','open'].includes
 function changeOrientation(orientation){if(!['portrait','landscape'].includes(orientation))throw new Error('Choose portrait or landscape.');state.orientation=orientation;state.custom=null;clearDimensionError();update();}
 function changeView(view){if(view!=='three')state.content='website';if(!['three','single','compare'].includes(view))throw new Error('Choose 3D model, 2D preview, or compare.');state.view=view;update();}
 function loadWebsite(url){
-  if(state.mode==='snapshot'&&url!==demoUrl)validateSnapshotUrl(url);
+  const mode=automaticSnapshotUrl?'embedded':state.mode;
+  if(mode==='snapshot'&&url!==demoUrl)validateSnapshotUrl(url);
+  if(mode==='embedded')normalizeUrl(url,location.href,{embedded:true});
+  automaticSnapshotUrl=null;state.mode=mode;
   state.content='website';state.url=url;
   $('#preview-status').textContent=isDemo()?'Demo website':new URL(url).hostname;
   $('#site-url').value=isDemo()?'':url;$('#url-error').hidden=true;update();
@@ -136,6 +154,7 @@ $('#demo').addEventListener('click',()=>{state.mode='embedded';loadWebsite(demoU
 $('#reload').addEventListener('click',()=>{
  if(isSnapshot()){for(const [key,record]of captures)if(key.startsWith(state.url+'|')){record.controller?.abort();captures.delete(key);}update();return;}
  modelViewer?.reload();frame.src=state.url;comparisonFrames.forEach(item=>item.iframe.src=state.url);
+ embedFallback.retry();update();
 });
 $$('[data-display]').forEach(button=>button.addEventListener('click',()=>changeDisplay(button.dataset.display)));
 $$('[data-orientation]').forEach(button=>button.addEventListener('click',()=>changeOrientation(button.dataset.orientation)));
@@ -197,7 +216,7 @@ update();
 // Optional imperative tools share the same validated state transitions as the controls.
 if(document.modelContext?.registerTool){
   const lifecycle=new AbortController();
-  const previewTool={name:'configure_website_preview',title:'Configure website preview',description:'Show a website inside the iPhone Duo preview. Live preview embeds the page. Snapshot sends a public URL to Microlink to capture a scrollable full-page image at the selected viewport size; links are not interactive.',inputSchema:{type:'object',properties:{url:{type:'string'},display:{type:'string',enum:['folded','open']},orientation:{type:'string',enum:['portrait','landscape']},view:{type:'string',enum:['three','single','compare']},foldAngle:{type:'number',minimum:0,maximum:180},finish:{type:'string',enum:['white','night']},pose:{type:'string',enum:['tabletop','book','flat']},content:{type:'string',enum:['website','player']},mode:{type:'string',enum:['embedded','snapshot']}},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute(input){
+  const previewTool={name:'configure_website_preview',title:'Configure website preview',description:'Show a website inside the iPhone Duo preview. Live preview checks public URLs for embedding restrictions through Duo View and automatically sends blocked public URLs to Microlink for a scrollable snapshot. Snapshot mode requests Microlink directly. Snapshot links are not interactive; local and private URLs stay in Live preview.',inputSchema:{type:'object',properties:{url:{type:'string'},display:{type:'string',enum:['folded','open']},orientation:{type:'string',enum:['portrait','landscape']},view:{type:'string',enum:['three','single','compare']},foldAngle:{type:'number',minimum:0,maximum:180},finish:{type:'string',enum:['white','night']},pose:{type:'string',enum:['tabletop','book','flat']},content:{type:'string',enum:['website','player']},mode:{type:'string',enum:['embedded','snapshot']}},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute(input){
     if(!input||typeof input!=='object'||Object.keys(input).some(key=>!['url','display','orientation','view','foldAngle','finish','pose','content','mode'].includes(key)))throw new Error('Invalid preview options.');
     if(input.display!==undefined&&!['folded','open'].includes(input.display))throw new Error('Invalid display.');
     if(input.orientation!==undefined&&!['portrait','landscape'].includes(input.orientation))throw new Error('Invalid orientation.');
@@ -206,11 +225,11 @@ if(document.modelContext?.registerTool){
     if(input.finish!==undefined&&!['white','night'].includes(input.finish))throw new Error('Unknown finish.');
     if(input.pose!==undefined&&!['tabletop','book','flat'].includes(input.pose))throw new Error('Unknown pose.');
     if(input.content!==undefined&&!['website','player'].includes(input.content))throw new Error('Unknown screen content.');
-    const mode=input.mode??state.mode;if(!['embedded','snapshot'].includes(mode))throw new Error('Unknown preview mode.');
+    const mode=input.mode??(input.url!==undefined&&automaticSnapshotUrl?'embedded':state.mode);if(!['embedded','snapshot'].includes(mode))throw new Error('Unknown preview mode.');
     const url=input.url!==undefined?normalizeUrl(input.url,location.href,{embedded:mode==='embedded'}):null;
     if(mode==='snapshot'&&(url||state.url)!==demoUrl)validateSnapshotUrl(url||state.url);
     if(mode==='embedded'&&(url||state.url)!==demoUrl)normalizeUrl(url||state.url,location.href,{embedded:true});
-    state.mode=mode;
+    if(input.mode!==undefined||input.url!==undefined)automaticSnapshotUrl=null;state.mode=mode;
     if(input.pose){state.pose=input.pose;state.display='open';state.orientation=input.pose==='tabletop'?'portrait':'landscape';state.foldAngle=input.pose==='flat'?180:input.pose==='tabletop'?100:115;}
     if(input.content)state.content=input.content;if(input.pose||input.content==='player')state.view='three';
     if(input.display){state.display=input.display;state.foldAngle=input.display==='folded'?0:180;}if(input.orientation)state.orientation=input.orientation;if(input.view)state.view=input.view;
