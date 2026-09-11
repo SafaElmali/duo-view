@@ -8,3 +8,5 @@
 .duo-render-host>canvas{z-index:3}.duo-web-layer{z-index:2}
 
 .duo-split-screen.is-snapshot.duo-interactive .duo-split-page,.duo-split-screen.is-snapshot.duo-interactive iframe{pointer-events:auto!important}
+
+.url-bar .streaming-demo{display:inline-flex;align-items:center;gap:7px;border:1px solid #dce3ed;border-radius:7px;padding:10px 12px;white-space:nowrap}.url-bar .streaming-demo[aria-pressed=true]{background:#edf2fc;border-color:#afbfdf;color:#345a9b}.streaming-demo>span{font-size:10px}

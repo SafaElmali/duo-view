@@ -66,7 +66,8 @@ function update(){
   $('#duo-state-label').textContent=`${state.pose==='tabletop'?'Tabletop':state.pose==='book'?'Book':title(state.display,state.orientation)} · ${Math.round(state.foldAngle)}°`;
   selected('data-pose',state.pose);
   selected('data-finish',state.finish);
-  $('#player-demo').setAttribute('aria-pressed',String(state.content==='player'));
+  $$('[data-player-demo]').forEach(button=>button.setAttribute('aria-pressed',String(state.content==='player')));
+  $('#preview-status').textContent=state.content==='player'?'Sintel · Interactive demo':isDemo()?'Demo website':new URL(state.url).hostname;
   $('#duo-render-host').classList.toggle('tabletop-pose',state.pose==='tabletop');
   $('#fold-angle').value=String(state.foldAngle);
   $('#fold-angle-output').value=`${Math.round(state.foldAngle)}°`;
@@ -187,7 +188,10 @@ $('#fold-angle').addEventListener('input',event=>{state.foldAngle=Number(event.t
 $$('[data-finish]').forEach(button=>button.addEventListener('click',()=>{state.finish=button.dataset.finish;$$('[data-finish]').forEach(item=>{const active=item.dataset.finish===state.finish;item.classList.toggle('selected',active);item.setAttribute('aria-pressed',String(active));});updateModel();}));
 $$('[data-pose]').forEach(button=>button.addEventListener('click',()=>setPose(button.dataset.pose)));
 function setPose(pose){state.pose=pose;state.display='open';state.view='three';state.orientation=pose==='tabletop'?'portrait':'landscape';state.foldAngle=pose==='flat'?180:pose==='tabletop'?100:115;state.custom=null;update();modelViewer?.reset();}
-$('#player-demo').addEventListener('click',()=>{state.content='player';state.finish='night';setPose('tabletop');});
+$$('[data-player-demo]').forEach(button=>button.addEventListener('click',()=>{
+ state.content='player';state.finish='night';setPose('tabletop');modelViewer?.startPlayer();
+ $('#url-error').hidden=true;$('#site-url').removeAttribute('aria-invalid');
+}));
 update();
 
 // Optional imperative tools share the same validated state transitions as the controls.

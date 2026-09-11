@@ -1,7 +1,7 @@
 import * as T from './assets/three/three.module.min.js';
 import {CSS3DRenderer,CSS3DObject} from './assets/three/CSS3DRenderer.js';
 import {createDuoModel,MODEL,modelRoll} from './duo-model.mjs';
-import {createDuoPlayer} from './duo-player.mjs';
+import {createDuoPlayer} from './duo-player.mjs?v=2';
 import {dimensions} from './simulator.mjs';
 import {createSnapshotScroller} from './snapshot-scroll.mjs';
 export function createDuoViewer(host){
@@ -76,7 +76,7 @@ export function createDuoViewer(host){
  function interactionLabel(){return interact?'Rotate model':snapshotMode()?'Scroll preview':playingDemo()?'Use player':'Use website';}
  function message(){if(snapshotMode()){fallback.textContent=interact?'Scroll or swipe on either screen · Both halves move together.':'Drag to rotate · Choose “Scroll preview” to explore the page.';return;}fallback.textContent=playingDemo()?(interact?'Play, pause, and scrub on the lower screen.':'Drag to rotate · Choose “Use player” for playback controls.'):(live?(target>1&&target<179?'Two page views across the bend. Open flat to interact.':'Drag to rotate. Choose “Use website” to interact.'):'Enter a website URL to preview it on the phone.');}
  function update(next){const previousPose=state?.pose,wasPlayer=playingDemo(),wasSnapshot=snapshotMode();state={...next};target=next.foldAngle??(next.display==='folded'?0:180);targetRoll=modelRoll(next.display,next.orientation);phone.finish(next.finish||'white');if(previousPose!==state.pose)poseCamera();
-  if(snapshotMode()&&!wasSnapshot)interact=true;
+  if(snapshotMode()&&!wasSnapshot||playingDemo()&&!wasPlayer)interact=true;
   if(!snapshotMode()&&!playingDemo()&&target>1&&target<179)interact=false;
   snapshotScroll.update(snapshotMode()?next.snapshot:null);
   if(wasPlayer&&!playingDemo())player.pause();
@@ -89,6 +89,12 @@ export function createDuoViewer(host){
   const button=host.querySelector('.duo-interact');button.disabled=!snapshotMode()&&!playingDemo()&&(!live||target>1&&target<179);button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);message();wake();}
  function setActive(value){active=value;if(!active){player.pause();if(frame){cancelAnimationFrame(frame);frame=0;}}surfaceHost.hidden=!active;if(active)resize();}
  function reset(){poseCamera();zoom=1;resize();}
+ function startPlayer(){
+  if(!playingDemo())return;
+  interact=true;host.classList.add('use-website');
+  const button=host.querySelector('.duo-interact');button.setAttribute('aria-pressed','true');button.textContent=interactionLabel();
+  message();wake();player.start();
+ }
  canvas.tabIndex=0;canvas.setAttribute('aria-label','3D iPhone Duo. Drag to rotate. Arrow keys rotate and tilt. Home resets the view.');
  canvas.addEventListener('pointerdown',event=>{if(interact)return;drag={x:event.clientX,y:event.clientY,yaw,pitch};canvas.setPointerCapture(event.pointerId);});
  canvas.addEventListener('pointermove',event=>{if(!drag)return;yaw=drag.yaw+(event.clientX-drag.x)*.009;pitch=T.MathUtils.clamp(drag.pitch+(event.clientY-drag.y)*.007,-1.15,1.15);wake();});
@@ -99,5 +105,5 @@ export function createDuoViewer(host){
  host.querySelector('.duo-interact').addEventListener('click',event=>{interact=!interact;host.classList.toggle('use-website',interact);event.currentTarget.setAttribute('aria-pressed',String(interact));event.currentTarget.textContent=interactionLabel();message();wake();});
  new ResizeObserver(resize).observe(host);document.addEventListener('visibilitychange',wake);
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();active=false;surfaceHost.hidden=true;fallback.textContent='3D graphics paused. Reload to restore, or use the 2D preview.';});
- return {update,setActive,reset,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){iframe.src=live?state.url:'about:blank';for(const surface of splitSurfaces)if(surface.iframe.getAttribute('src')!=='about:blank')surface.iframe.src=state.url;}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
+ return {update,setActive,reset,startPlayer,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){iframe.src=live?state.url:'about:blank';for(const surface of splitSurfaces)if(surface.iframe.getAttribute('src')!=='about:blank')surface.iframe.src=state.url;}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
 }
