@@ -1,6 +1,8 @@
 import * as T from './assets/three/three.module.min.js';
 export const MODEL={halfWidth:2.46,height:3.52,depth:.13,hingeZ:.085,innerWidth:4.72,innerHeight:4.72*626/890,outerWidth:2.25,outerHeight:2.25*678/466};
-function shape(w,h,r){const s=new T.Shape(),x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s;}
+function shape(w,h,r){const [bl,br,tr,tl]=Array.isArray(r)?r:[r,r,r,r],s=new T.Shape(),x=-w/2,y=-h/2;s.moveTo(x+bl,y);s.lineTo(x+w-br,y);s.quadraticCurveTo(x+w,y,x+w,y+br);s.lineTo(x+w,y+h-tr);s.quadraticCurveTo(x+w,y+h,x+w-tr,y+h);s.lineTo(x+tl,y+h);s.quadraticCurveTo(x,y+h,x,y+h-tl);s.lineTo(x,y+bl);s.quadraticCurveTo(x,y,x+bl,y);return s;}
+// Only the outside corners are rounded; the two straight inner edges meet at the fold.
+function halfCorners(radius,sign){return sign<0?[radius,0,0,radius]:[0,radius,radius,0];}
 function panel(w,h,r,depth,mat){return new T.Mesh(new T.ExtrudeGeometry(shape(w,h,r),{depth,bevelEnabled:true,bevelSize:.018,bevelThickness:.009,bevelSegments:3,steps:1,curveSegments:16}),mat);}
 function surface(w,h,r,mat){const g=new T.ShapeGeometry(shape(w,h,r),20);const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,p.getX(i)/w+.5,p.getY(i)/h+.5);return new T.Mesh(g,mat);}
 function rearHardware(w,h,ceramic,titanium,black){
@@ -49,10 +51,11 @@ export function createDuoModel(){
  const rightBody=new T.Group();rightBody.name='Right_Half';rightBody.position.z=-hingeZ;right.add(rightBody);
  const displays=[];
  for(const [group,sign] of [[left,-1],[rightBody,1]]){
-  const body=panel(w-.025,h-.025,.3,d,titanium);body.name=sign<0?'Left_Titanium_Frame':'Right_Titanium_Frame';body.position.set(sign*w/2,0,-d/2);group.add(body);
-  const bezel=surface(w-.055,h-.065,.275,black);bezel.position.set(sign*w/2,0,.077);bezel.name='Inner_Bezel';group.add(bezel);
-  const half=surface(MODEL.innerWidth/2-.006,MODEL.innerHeight,.145,screen.clone());half.position.set(sign*MODEL.innerWidth/4,0,.079);half.name=sign<0?'Inner_Display_Left':'Inner_Display_Right';group.add(half);displays.push(half);
-  const back=surface(w-.065,h-.07,.275,sign===1?black:ceramic);back.rotation.y=Math.PI;back.position.set(sign*w/2,0,-.077);back.name=sign<0?'Ceramic_Back':'Outer_Bezel';group.add(back);
+  const body=panel(w-.025,h-.025,halfCorners(.3,sign),d,titanium);body.name=sign<0?'Left_Titanium_Frame':'Right_Titanium_Frame';body.position.set(sign*w/2,0,-d/2);group.add(body);
+  const bezel=surface(w-.055,h-.065,halfCorners(.275,sign),black);bezel.position.set(sign*w/2,0,.077);bezel.name='Inner_Bezel';group.add(bezel);
+  // A subpixel overlap prevents floating-point cracks along the shared display edge.
+  const half=surface(MODEL.innerWidth/2+.0002,MODEL.innerHeight,halfCorners(.145,sign),screen.clone());half.position.set(sign*MODEL.innerWidth/4,0,.079);half.name=sign<0?'Inner_Display_Left':'Inner_Display_Right';group.add(half);displays.push(half);
+  const back=surface(w-.065,h-.07,halfCorners(.275,-sign),sign===1?black:ceramic);back.rotation.y=Math.PI;back.position.set(sign*w/2,0,-.077);back.name=sign<0?'Ceramic_Back':'Outer_Bezel';group.add(back);
   if(sign===1){const cover=surface(MODEL.outerWidth,MODEL.outerHeight,.15,screen.clone());cover.rotation.y=Math.PI;cover.position.set(w/2,0,-.079);cover.name='Outer_Display';group.add(cover);displays.push(cover);
    const punch=new T.Mesh(new T.CircleGeometry(.057,32),black);punch.rotation.y=Math.PI;punch.position.set(.28,h/2-.28,-.083);punch.name='Front_Camera';group.add(punch);
   }

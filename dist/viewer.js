@@ -5,7 +5,7 @@ import {createEmbedFallback} from './embed-fallback.mjs';
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const demoUrl=new URL('demo.html',location.href).href;
-const state={display:'open',orientation:'portrait',view:'three',chrome:false,hinge:true,zoom:'fit',custom:null,url:demoUrl,mode:'embedded',foldAngle:100,finish:'night',pose:'tabletop',content:'player'};
+const state={display:'open',orientation:'portrait',view:'three',chrome:false,hinge:false,zoom:'fit',custom:null,url:demoUrl,mode:'embedded',foldAngle:100,finish:'night',pose:'tabletop',content:'player'};
 let modelViewer=null;
 let modelFailed=false;
 const frame=$('#site-frame');

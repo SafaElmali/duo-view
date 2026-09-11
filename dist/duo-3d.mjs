@@ -59,7 +59,7 @@ export function createDuoViewer(host){
   });
  }
  function syncWeb(){
-  if(!state)return;const mode=getMode(),isOpen=mode==='open';const size=dimensions(mode,state.orientation,state.chrome,state.custom);
+  if(!state)return;const mode=getMode(),isOpen=mode==='open';const size=dimensions(mode,state.orientation,state.chrome,state.custom);host.classList.toggle('is-flat',angle>179.2);
   const nativeWidth=isOpen?MODEL.innerWidth:MODEL.outerWidth,nativeHeight=isOpen?MODEL.innerHeight:MODEL.outerHeight;
   const rotated=(isOpen&&state.orientation==='portrait')||(!isOpen&&state.orientation==='landscape');
   const w=rotated?nativeHeight:nativeWidth,h=rotated?nativeWidth:nativeHeight;
