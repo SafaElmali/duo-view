@@ -1,8 +1,12 @@
+![Duo View — Your website, in every fold.](docs/assets/duo-view-cover.png)
+
 # Duo View
 
 [Live app](https://duo-view-safa.netlify.app) · [Source](https://github.com/SafaElmali/duo-view)
 
 A responsive website preview for iPhone Duo: folded/open × portrait/landscape, side-by-side comparison, optional browser chrome and hinge guide, editable dimensions, zoom, and fullscreen. Includes a responsive interactive demo.
+
+Explore an animated 3D folding model, scroll full-page website snapshots across both halves, or try the streaming player with working playback controls. In streaming mode, two-finger swipes and dragging the video rotate the phone while the controls stay active.
 
 ## Local use
 
@@ -11,6 +15,20 @@ Serve `dist` with an HTTP server. There is no build or installation step. Run `n
 ## Deploy to Netlify
 
 Connect this repository to Netlify. The included `netlify.toml` runs the tests and publishes `dist`; no environment variables or API keys are required. Changes pushed to `main` deploy automatically once the repository is connected.
+
+## Marketing video
+
+The [editable Remotion project](marketing/README.md) creates a 28-second landscape film at 1920 × 1080 and 30 fps, with animated product shots, website scrolling, streaming controls, and an original music bed. The assets are bundled for rendering without external services.
+
+```sh
+cd marketing
+npm ci
+npm run studio
+# Export the MP4:
+npm run render
+```
+
+The export is saved to `marketing/out/duo-view-marketing-1080p.mp4`. Generated exports and installed dependencies are excluded from Git. See the [project README](marketing/README.md) for the storyboard, editing guide, and asset credits.
 
 ## Accuracy and limitations
 
@@ -28,7 +46,7 @@ Connect this repository to Netlify. The included `netlify.toml` runs the tests a
 
 The simulator opens in the Tabletop pose with an interactive streaming player on an original Three.js model with two separately hinged halves, polished titanium and ceramic materials, camera lenses, side controls, antenna bands, USB-C, and speaker openings. The 0–180° hinge slider, two finish choices, front/back view, keyboard rotation, and portrait/landscape presets control the same model. Front / back and Reset view animate camera rotation and zoom with a 700 ms ease, follow the shortest rotation, and let dragging or keyboard input take over immediately. Reduced-motion preferences skip camera animation. It renders on demand and pauses when another view or browser tab is active.
 
-CSS3D surfaces follow the two physical halves at every hinge angle. The player keeps one video and one set of working controls as you change poses, with video above the hinge and controls below in Tabletop mode. Play/pause, seeking, ten-second skips, mute, speed, brightness, control locking, and video fullscreen are available. Player controls are enabled immediately. Streaming demo in the top bar or sidebar opens Tabletop mode and starts the muted teaser; use the speaker button for sound. Rotate model restores camera control, and Use player returns to playback controls. The movie is Sintel by Blender Foundation, licensed CC BY 3.0 (https://durian.blender.org/sharing/); the video and poster are from W3C’s sample (https://www.w3.org/2010/05/video/mediaevents). It is an independent player demo, not Netflix or a prediction of native iOS app behavior.
+CSS3D surfaces follow the two physical halves at every hinge angle. The player keeps one video and one set of working controls as you change poses, with video above the hinge and controls below in Tabletop mode. Play/pause, seeking, ten-second skips, mute, speed, brightness, control locking, and video fullscreen are available. Player controls are enabled immediately. Streaming demo in the top bar or sidebar opens Tabletop mode and starts the muted teaser; use the speaker button for sound. Two-finger swipes over the video or empty preview area rotate the camera; click-and-drag works too, without disabling playback controls. Pinch gestures zoom in browsers that emit control-wheel events. Buttons and the scrubber retain their own gestures. Rotate model lets you drag anywhere on the phone, and Use player restores playback controls. The movie is Sintel by Blender Foundation, licensed CC BY 3.0 (https://durian.blender.org/sharing/); the video and poster are from W3C’s sample (https://www.w3.org/2010/05/video/mediaevents). It is an independent player demo, not Netflix or a prediction of native iOS app behavior.
 
 For live websites, two clipped page views maintain the full responsive viewport across the bend. These are independent browsing contexts and intentionally noninteractive at intermediate angles; open flat or close fully for interaction in a single frame. Website content is not automatically reorganized into app-specific controls. External embedding restrictions remain unchanged. Snapshot is the in-device alternative: one full-page captured image is split across the hinge. Scroll with a mouse wheel, trackpad, touch swipe, or keyboard focus inside the screen. Native scrolling is synchronized across both halves and the flat screen. Scrolling is enabled automatically in Snapshot mode; Rotate model switches to camera controls, and Scroll preview returns to scrolling. Changing the URL or viewport resets scroll position. The existing standalone launch route is retained for old links, but it is no longer used by the simulator. Local video testing requires a server with byte-range support for seeking.
 
