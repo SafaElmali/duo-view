@@ -1,5 +1,7 @@
 # Duo View
 
+[Live app](https://duo-view-safa.netlify.app) · [Source](https://github.com/SafaElmali/duo-view)
+
 A responsive website preview for iPhone Duo: folded/open × portrait/landscape, side-by-side comparison, optional browser chrome and hinge guide, editable dimensions, zoom, and fullscreen. Includes a responsive interactive demo.
 
 ## Local use
