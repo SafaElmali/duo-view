@@ -36,3 +36,15 @@ test('local and private URLs are never sent, and reload can retry an unknown che
  f.fallback.retry();f.fallback.update('https://example.com/',true);await tick();
  assert.equal(f.requests.length,2);f.requests[1].resolve({status:'allowed'});await tick();
 });
+
+test('file previews use snapshots for public websites without calling the missing server',()=>{
+ const unavailable=[],requests=[];
+ const fallback=createEmbedFallback({protocol:'file:',onChange:()=>{},onBlocked:()=>assert.fail('Not a confirmed embedding block'),onUnavailable:url=>unavailable.push(url),check:url=>requests.push(url)});
+ const url='https://www.madissongold.com/';
+ fallback.update(url,true);fallback.update(url,true);
+ assert.deepEqual(unavailable,[url]);assert.deepEqual(requests,[]);
+ assert.equal(fallback.getState(),'unavailable');
+ fallback.update(url,false);assert.equal(fallback.getState(),'idle');
+ for(const privateUrl of ['http://localhost:4317/','https://example.com?token=private'])fallback.update(privateUrl,true);
+ assert.deepEqual(unavailable,[url]);assert.equal(fallback.getState(),'local');
+});

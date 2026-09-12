@@ -1,0 +1,6 @@
+.preview-frame-loading{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:#f6f8fc;color:#253758;text-align:center;pointer-events:none;font-family:Manrope,Arial,sans-serif}
+.preview-frame-loading strong{font-size:24px;font-weight:600;letter-spacing:-.5px}
+.preview-frame-loading span{font-size:16px;color:#687891;max-width:100%;overflow-wrap:anywhere}
+.preview-frame-loading::after{content:'';width:112px;height:4px;margin-top:12px;border-radius:4px;background:#315ef5;animation:preview-loading 1.4s ease-in-out infinite;transform-origin:center}
+@keyframes preview-loading{0%,100%{transform:scaleX(.3);opacity:.4}50%{transform:scaleX(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.preview-frame-loading::after{animation:none;opacity:.6}}

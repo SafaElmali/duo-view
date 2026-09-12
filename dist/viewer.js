@@ -1,12 +1,18 @@
+import {bindMobileControls} from './mobile-controls.mjs';
+import {initAnalytics,bindAnalyticsControls,track} from './analytics.mjs';
 import {createDuoViewer} from './duo-3d.mjs';
 import {dimensions,validDimension,normalizeUrl,fitScale} from './simulator.mjs';
 import {captureSnapshot,snapshotDocument,validateSnapshotUrl} from './snapshot.mjs';
 import {createEmbedFallback} from './embed-fallback.mjs';
+import {bindPreviewModePicker} from './preview-mode-picker.mjs';
+import {DEFAULT_PREVIEW,createPreviewLink,readPreviewLink,bindPreviewSharing} from './share-preview.mjs';
+import {navigatePreviewFrame} from './preview-frame.mjs';
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const demoUrl=new URL('demo.html',location.href).href;
-const state={display:'open',orientation:'portrait',view:'three',chrome:false,hinge:false,zoom:'fit',custom:null,url:demoUrl,mode:'embedded',foldAngle:100,finish:'night',pose:'tabletop',content:'player'};
+const state={...DEFAULT_PREVIEW,url:demoUrl};
 let modelViewer=null;
+let modePicker=null;
 let modelFailed=false;
 const frame=$('#site-frame');
 let comparisonFrames=[];
@@ -15,40 +21,47 @@ const title=(display,orientation)=>`${display==='folded'?'Folded':'Open'} · ${o
 const isDemo=()=>state.url===demoUrl;
 const isSnapshot=()=>state.mode==='snapshot'&&!isDemo()&&state.content==='website';
 const captures=new Map();
-let automaticSnapshotUrl=null;
+let automaticSnapshotUrl=null,automaticSnapshotReason=null;
+function automaticSnapshot(url,reason){
+ if(state.url!==url||state.mode!=='embedded'||state.content!=='website')return;
+ automaticSnapshotUrl=url;automaticSnapshotReason=reason;state.mode='snapshot';track('duo_preview_fallback',{reason});update();
+}
+function previewTimedOut(url){
+ if(state.url!==url||state.mode!=='embedded'||state.content!=='website'||isDemo())return;
+ try{validateSnapshotUrl(url);if(new URL(url).port)return;}catch{return;}
+ automaticSnapshot(url,'load-timeout');
+}
 const embedFallback=createEmbedFallback({
  onChange:()=>renderPreviewMode(),
- onBlocked:url=>{
-  if(state.url!==url||state.mode!=='embedded'||state.content!=='website')return;
-  automaticSnapshotUrl=url;state.mode='snapshot';update();
- }
+ onBlocked:url=>automaticSnapshot(url,'blocked'),
+ onUnavailable:url=>automaticSnapshot(url,'file-preview')
 });
 function captureKey(size){return `${state.url}|${size.width}|${size.contentHeight}`;}
 function getCapture(size){
  const key=captureKey(size);if(captures.has(key))return captures.get(key);
- const record={pending:true};captures.set(key,record);
+ const record={pending:true},startedAt=performance.now();captures.set(key,record);
+ const captureContext={...analyticsContext(),width:size.width,height:size.contentHeight};
+ track('duo_snapshot_started',captureContext);
  if(captures.size>16){const oldest=captures.keys().next().value;captures.get(oldest).controller?.abort();captures.delete(oldest);}
  const controller=new AbortController();record.controller=controller;const timer=setTimeout(()=>controller.abort(),55000);
- captureSnapshot(state.url,size,controller.signal).then(result=>Object.assign(record,result,{pending:false}),error=>Object.assign(record,{pending:false,error:error.name==='AbortError'?'Capture timed out. Try again using Reload preview.':error.message})).finally(()=>{clearTimeout(timer);if(captures.get(key)===record&&isSnapshot()){syncFrameSources();updateModel();renderPreviewMode();}});
+ captureSnapshot(state.url,size,controller.signal).then(result=>Object.assign(record,result,{pending:false}),error=>Object.assign(record,{pending:false,error:error.name==='AbortError'?'Capture timed out. Try again using Reload preview.':error.message})).finally(()=>{clearTimeout(timer);if(!controller.signal.aborted||performance.now()-startedAt>=55000)track(record.image?'duo_snapshot_ready':'duo_snapshot_failed',{...captureContext,duration_ms:Math.round(performance.now()-startedAt)});if(captures.get(key)===record&&isSnapshot()){syncFrameSources();updateModel();renderPreviewMode();}});
  return record;
 }
 function setFrameSource(iframe,size){
- if(isSnapshot()){
-  const doc=snapshotDocument(getCapture(size));if(iframe.getAttribute('src')!=='about:blank')iframe.src='about:blank';if(iframe.srcdoc!==doc)iframe.srcdoc=doc;
- }else{iframe.removeAttribute('srcdoc');if(iframe.getAttribute('src')!==state.url)iframe.src=state.url;}
+ navigatePreviewFrame(iframe,{url:state.url,html:isSnapshot()?snapshotDocument(getCapture(size)):null,onTimeout:previewTimedOut});
 }
 function syncFrameSources(){
  if(state.view!=='compare')setFrameSource(frame,dimensions(state.display,state.orientation,state.chrome,state.custom));
  if(state.view==='compare')for(const item of comparisonFrames)setFrameSource(item.iframe,dimensions(item.display,item.orientation,state.chrome));
 }
 function renderPreviewMode(){
- $('#zoom').disabled=state.view==='three';$('#preview-mode').value=state.mode;
+ $('#zoom').disabled=state.view==='three';$('#preview-mode').value=state.mode;modePicker?.sync();
  $('#embed-notice').hidden=isDemo()||isSnapshot()||state.content==='player';
  const checking=embedFallback.getState();
- $('#embed-message').textContent=checking==='checking'?'Checking whether this page allows live preview…':checking==='local'?'Live preview only for local or private URLs.':checking==='unknown'?'Could not check this page. If it stays blank, create a snapshot.':'Live preview · Blocked pages switch to a snapshot automatically.';
+ $('#embed-message').textContent=checking==='checking'?'Checking whether this page allows live preview…':checking==='local'?'Live preview only for local or private URLs.':checking==='unknown'?'Could not check this page. Trying live preview…':'Live preview · Blocked or stalled pages switch to a snapshot.';
  $('#embed-fallback').disabled=checking==='local';
  $('#snapshot-notice').hidden=!isSnapshot();
- $('#snapshot-reason').textContent=automaticSnapshotUrl===state.url?'This site blocks live preview. Showing a scrollable snapshot.':'Scrollable snapshot';
+ $('#snapshot-reason').textContent=automaticSnapshotUrl===state.url?(automaticSnapshotReason==='file-preview'?'File preview · Showing a scrollable snapshot.':automaticSnapshotReason==='load-timeout'?'Live preview took too long. Showing a scrollable snapshot.':'This site blocks live preview. Showing a scrollable snapshot.'):'Scrollable snapshot';
  if(isSnapshot()){
   const record=captures.get(captureKey(dimensions(state.display,state.orientation,state.chrome,state.custom)));
   $('#snapshot-status').textContent=record?.error?'Capture unavailable':record?.image?(record.height>dimensions(state.display,state.orientation,state.chrome,state.custom).contentHeight?'Ready · Scroll on the phone':'Ready · Single-screen capture'):'Rendering…';
@@ -65,6 +78,7 @@ function changeMode(mode){
 }
 $('#embed-fallback').addEventListener('click',()=>{try{changeMode('snapshot');}catch(error){urlError(error.message);}});
 $('#preview-mode').addEventListener('change',event=>{try{changeMode(event.target.value);}catch(error){event.target.value=state.mode;urlError(error.message);}});
+modePicker=bindPreviewModePicker($('#preview-mode'));
 
 function selected(attribute,value){$$(`[${attribute}]`).forEach(button=>{const active=button.getAttribute(attribute)===value;button.classList.toggle('active',active);if(attribute==='data-finish')button.classList.toggle('selected',active);button.setAttribute('aria-pressed',String(active));});}
 function update(){
@@ -81,12 +95,13 @@ function update(){
   selected('data-pose',state.pose);
   selected('data-finish',state.finish);
   $$('[data-player-demo]').forEach(button=>button.setAttribute('aria-pressed',String(state.content==='player')));
+  $('#demo').setAttribute('aria-pressed',String(state.content==='website'));
   $('#preview-status').textContent=state.content==='player'?'Sintel · Interactive demo':isDemo()?'Demo website':new URL(state.url).hostname;
   $('#duo-render-host').classList.toggle('tabletop-pose',state.pose==='tabletop');
   $('#fold-angle').value=String(state.foldAngle);
   $('#fold-angle-output').value=`${Math.round(state.foldAngle)}°`;
   $('#single-scene').hidden=state.view!=='single';$('#comparison').hidden=state.view!=='compare';
-  $('#chrome-toggle').checked=state.chrome;$('#hinge-toggle').checked=state.hinge;
+  $('#chrome-toggle').checked=state.chrome;$('#hinge-toggle').checked=state.hinge;$('#zoom').value=state.zoom;
   $('#hinge-toggle').disabled=state.display==='folded'&&state.view==='single';
   if(state.view==='compare'&&!comparisonFrames.length)buildComparison();
   syncFrameSources();
@@ -109,7 +124,7 @@ function fit(){
   if(state.view==='single'){
     const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
     const availableWidth=Math.max(260,stage.clientWidth-(innerWidth<700?28:70));
-    const availableHeight=Math.max(320,stage.clientHeight-145);
+    const availableHeight=Math.max(160,stage.clientHeight-145);
     const scale=fitScale(size,availableWidth,availableHeight,state.zoom);
     const device=$('#device');configureDevice(device,size,state.display,state.orientation);
     device.style.transform=`scale(${scale})`;
@@ -144,16 +159,20 @@ function loadWebsite(url){
   if(mode==='snapshot'&&url!==demoUrl)validateSnapshotUrl(url);
   if(mode==='embedded')normalizeUrl(url,location.href,{embedded:true});
   automaticSnapshotUrl=null;state.mode=mode;
-  state.content='website';state.url=url;
+  state.content='website';state.url=url;track('duo_preview_requested');
   $('#preview-status').textContent=isDemo()?'Demo website':new URL(url).hostname;
   $('#site-url').value=isDemo()?'':url;$('#url-error').hidden=true;update();
 }
-function urlError(message){$('#url-error').textContent=message;$('#url-error').hidden=false;$('#site-url').setAttribute('aria-invalid','true');}
+function urlError(message){track('duo_preview_validation_failed');$('#url-error').textContent=message;$('#url-error').hidden=false;$('#site-url').setAttribute('aria-invalid','true');}
 $('#url-form').addEventListener('submit',event=>{event.preventDefault();try{const url=normalizeUrl($('#site-url').value,location.href,{embedded:state.mode==='embedded'});loadWebsite(url);$('#site-url').removeAttribute('aria-invalid');}catch(error){urlError(error.message);}});
-$('#demo').addEventListener('click',()=>{state.mode='embedded';loadWebsite(demoUrl);$('#site-url').removeAttribute('aria-invalid');});
+$('#demo').addEventListener('click',()=>{
+ state.content='website';
+ $('#url-error').hidden=true;$('#site-url').removeAttribute('aria-invalid');
+ update();
+});
 $('#reload').addEventListener('click',()=>{
  if(isSnapshot()){for(const [key,record]of captures)if(key.startsWith(state.url+'|')){record.controller?.abort();captures.delete(key);}update();return;}
- modelViewer?.reload();frame.src=state.url;comparisonFrames.forEach(item=>item.iframe.src=state.url);
+ modelViewer?.reload();for(const iframe of [frame,...comparisonFrames.map(item=>item.iframe)])navigatePreviewFrame(iframe,{url:state.url,onTimeout:previewTimedOut,force:true});
  embedFallback.retry();update();
 });
 $$('[data-display]').forEach(button=>button.addEventListener('click',()=>changeDisplay(button.dataset.display)));
@@ -181,9 +200,9 @@ $('#fullscreen').addEventListener('click',async()=>{
 document.addEventListener('fullscreenchange',()=>{const expanded=Boolean(document.fullscreenElement);$('#fullscreen').setAttribute('aria-label',expanded?'Exit expanded preview':'Expand preview');requestFit();});
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape'){document.body.classList.remove('preview-expanded');requestFit();}
-  if(event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,select,textarea,[contenteditable]')||$('#info-dialog').open)return;
-  if(event.key.toLowerCase()==='r'){event.preventDefault();changeOrientation(state.orientation==='portrait'?'landscape':'portrait');}
-  if(event.key.toLowerCase()==='f'){event.preventDefault();changeDisplay(state.display==='folded'?'open':'folded');}
+  if(event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,select,textarea,[contenteditable]')||document.querySelector('dialog[open]'))return;
+  if(event.key.toLowerCase()==='r'){event.preventDefault();track('duo_keyboard_shortcut',{control:'orientation'});changeOrientation(state.orientation==='portrait'?'landscape':'portrait');}
+  if(event.key.toLowerCase()==='f'){event.preventDefault();track('duo_keyboard_shortcut',{control:'display'});changeDisplay(state.display==='folded'?'open':'folded');}
 });
 new ResizeObserver(requestFit).observe($('#stage'));
 window.addEventListener('resize',requestFit);
@@ -200,7 +219,7 @@ function updateModel(){
   if(modelViewer){
     const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
     const snapshot=isSnapshot()&&state.view==='three'?{...getCapture(size),key:captureKey(size),contentHeight:size.contentHeight}:null;
-    modelViewer.update({...state,demo:isDemo(),snapshot,snapshotPage:snapshot?snapshotDocument(snapshot):null});modelViewer.setActive(state.view==='three');
+    modelViewer.update({...state,demo:isDemo(),snapshot,snapshotPage:snapshot?snapshotDocument(snapshot):null,onPreviewTimeout:previewTimedOut});modelViewer.setActive(state.view==='three');
   }
 }
 $('#fold-angle').addEventListener('input',event=>{state.foldAngle=Number(event.target.value);state.display=state.foldAngle<4?'folded':'open';state.custom=null;update();});
@@ -211,12 +230,37 @@ $$('[data-player-demo]').forEach(button=>button.addEventListener('click',()=>{
  state.content='player';state.finish='night';setPose('tabletop');modelViewer?.startPlayer();
  $('#url-error').hidden=true;$('#site-url').removeAttribute('aria-invalid');
 }));
-update();
+function analyticsContext(){return {display:state.display,orientation:state.orientation,view:state.view,mode:state.mode,content:state.content,pose:state.pose,finish:state.finish,source:isDemo()?'demo':'custom',width:dimensions(state.display,state.orientation,state.chrome,state.custom).width,height:dimensions(state.display,state.orientation,state.chrome,state.custom).contentHeight};}
+initAnalytics(analyticsContext);
+bindAnalyticsControls(document);
+bindMobileControls();
+bindPreviewSharing({
+ getPreview(){
+  const source=state.content==='player'?'Streaming demo':isDemo()?'Demo website':new URL(state.url).hostname;
+  const layout=state.view==='three'?`${state.pose==='tabletop'?'Tabletop':state.pose==='book'?'Book':state.display==='folded'?'Folded':'Flat'} · ${Math.round(state.foldAngle)}°`:state.view==='single'?'2D preview':'Compare all';
+  return {url:createPreviewLink(state,{href:location.href,demoUrl,camera:modelViewer?.getCamera()}),summary:`${source} · ${layout} · ${state.orientation==='portrait'?'Portrait':'Landscape'}`};
+ },onEvent:track
+});
+function restoreSharedPreview(){
+ let shared;
+ try{shared=readPreviewLink(location.hash,{base:location.href,demoUrl});}
+ catch(error){urlError(error.message);return false;}
+ if(!shared)return false;
+ automaticSnapshotUrl=null;automaticSnapshotReason=null;
+ Object.assign(state,shared.state);
+ $('#site-url').value=isDemo()?'':state.url;
+ $('#url-error').hidden=true;$('#site-url').removeAttribute('aria-invalid');clearDimensionError();
+ embedFallback.retry();update();
+ if(shared.camera&&state.view==='three')modelViewer?.restoreCamera(shared.camera);
+ track('duo_shared_preview_opened');return true;
+}
+window.addEventListener('hashchange',restoreSharedPreview);
+if(!restoreSharedPreview())update();
 
 // Optional imperative tools share the same validated state transitions as the controls.
 if(document.modelContext?.registerTool){
   const lifecycle=new AbortController();
-  const previewTool={name:'configure_website_preview',title:'Configure website preview',description:'Show a website inside the iPhone Duo preview. Live preview checks public URLs for embedding restrictions through Duo View and automatically sends blocked public URLs to Microlink for a scrollable snapshot. Snapshot mode requests Microlink directly. Snapshot links are not interactive; local and private URLs stay in Live preview.',inputSchema:{type:'object',properties:{url:{type:'string'},display:{type:'string',enum:['folded','open']},orientation:{type:'string',enum:['portrait','landscape']},view:{type:'string',enum:['three','single','compare']},foldAngle:{type:'number',minimum:0,maximum:180},finish:{type:'string',enum:['white','night']},pose:{type:'string',enum:['tabletop','book','flat']},content:{type:'string',enum:['website','player']},mode:{type:'string',enum:['embedded','snapshot']}},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute(input){
+  const previewTool={name:'configure_website_preview',title:'Configure website preview',description:'Show a website inside the iPhone Duo preview. Live preview checks public URLs for embedding restrictions through Duo View and automatically sends public URLs to Microlink for a scrollable snapshot when embedding is blocked or live navigation takes more than 15 seconds. Snapshot mode requests Microlink directly. Snapshot links are not interactive; local and private URLs stay in Live preview.',inputSchema:{type:'object',properties:{url:{type:'string'},display:{type:'string',enum:['folded','open']},orientation:{type:'string',enum:['portrait','landscape']},view:{type:'string',enum:['three','single','compare']},foldAngle:{type:'number',minimum:0,maximum:180},finish:{type:'string',enum:['white','night']},pose:{type:'string',enum:['tabletop','book','flat']},content:{type:'string',enum:['website','player']},mode:{type:'string',enum:['embedded','snapshot']}},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute(input){
     if(!input||typeof input!=='object'||Object.keys(input).some(key=>!['url','display','orientation','view','foldAngle','finish','pose','content','mode'].includes(key)))throw new Error('Invalid preview options.');
     if(input.display!==undefined&&!['folded','open'].includes(input.display))throw new Error('Invalid display.');
     if(input.orientation!==undefined&&!['portrait','landscape'].includes(input.orientation))throw new Error('Invalid orientation.');

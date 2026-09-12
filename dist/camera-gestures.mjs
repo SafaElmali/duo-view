@@ -21,12 +21,12 @@ export function bindCameraGestures(host,{canRotate,onStart,onRotate,onZoom}){
   if(host.hasPointerCapture(id))host.releasePointerCapture(id);
  }
  function wheel(event){
-  if(!allowed(event)||drag||(!event.deltaX&&!event.deltaY))return;
+  // Ordinary wheel/trackpad scrolling never moves the camera.
+  if(!event.ctrlKey||!allowed(event)||drag||!event.deltaY)return;
   event.preventDefault();onStart();
   const unit=event.deltaMode===1?16:event.deltaMode===2?host.clientHeight:1;
   const limit=value=>Math.max(-120,Math.min(120,value*unit));
-  if(event.ctrlKey)onZoom(limit(event.deltaY));
-  else onRotate(limit(event.deltaX),limit(event.deltaY));
+  onZoom(limit(event.deltaY));
  }
  const listeners={pointerdown:down,pointermove:move,pointerup:end,pointercancel:end,lostpointercapture:end,wheel};
  for(const [type,listener]of Object.entries(listeners))host.addEventListener(type,listener,{passive:false});

@@ -7,7 +7,7 @@ async function checkEmbedding(url,signal){
  if(!response.ok)throw new Error('Embedding check unavailable.');
  return response.json();
 }
-export function createEmbedFallback({onChange,onBlocked,check=checkEmbedding}){
+export function createEmbedFallback({onChange,onBlocked,onUnavailable=()=>{},check=checkEmbedding,protocol=globalThis.location?.protocol}){
  let current=null,controller=null,version=0,status='idle';
  const cache=new Map();
  function publish(next){status=next;onChange();}
@@ -20,6 +20,8 @@ export function createEmbedFallback({onChange,onBlocked,check=checkEmbedding}){
    if(!key){publish('idle');return;}
    try{validateSnapshotUrl(url);if(new URL(url).port)throw new Error();}
    catch{publish('local');return;}
+   // A file preview has no server endpoint to inspect embedding headers.
+   if(protocol==='file:'){publish('unavailable');onUnavailable(url);return;}
    const finish=result=>{
     if(request!==version)return;
     const next=['blocked','allowed'].includes(result?.status)?result.status:'unknown';

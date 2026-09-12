@@ -33,14 +33,28 @@ test('player controls keep their pointer and wheel gestures without rotating the
  assert.equal(f.send('wheel',{deltaX:50,deltaY:20},true).defaultPrevented,false);
  assert.deepEqual(f.rotations,[]);assert.equal(f.starts,0);
 });
-test('two-finger swipes rotate both axes, normalize wheel units, and pinch only zooms',()=>{
+test('ordinary scrolling never rotates, zooms, or consumes the scroll event',()=>{
  const f=fixture();
- assert.equal(f.send('wheel',{deltaX:24,deltaY:-10}).defaultPrevented,true);
- f.send('wheel',{deltaY:2,deltaMode:1});
- f.send('wheel',{deltaX:1,deltaMode:2});
- f.send('wheel',{deltaY:-7,ctrlKey:true});
- assert.deepEqual(f.rotations,[[24,-10],[0,32],[120,0]]);
- assert.deepEqual(f.zooms,[-7]);
+ for(const deltaMode of [0,1,2]){
+  assert.equal(f.send('wheel',{deltaX:24,deltaY:-10,deltaMode}).defaultPrevented,false);
+ }
+ assert.deepEqual(f.rotations,[]);assert.deepEqual(f.zooms,[]);assert.equal(f.starts,0);
+});
+test('pinch still zooms without rotating the model',()=>{
+ const f=fixture();
+ assert.equal(f.send('wheel',{deltaY:-7,ctrlKey:true}).defaultPrevented,true);
+ f.send('wheel',{deltaY:2,deltaMode:1,ctrlKey:true});
+ assert.deepEqual(f.rotations,[]);assert.deepEqual(f.zooms,[-7,32]);
+});
+test('touch rotation requires a held pointer and ignores scrolling during the drag',()=>{
+ const f=fixture();
+ f.send('pointermove',{pointerType:'touch',clientY:150});assert.deepEqual(f.rotations,[]);
+ f.send('pointerdown',{pointerType:'touch'});
+ assert.equal(f.send('wheel',{deltaY:80}).defaultPrevented,false);
+ f.send('pointermove',{pointerType:'touch',clientX:130,clientY:160});
+ f.send('pointerup',{pointerType:'touch'});
+ f.send('pointermove',{pointerType:'touch',clientY:200});
+ assert.deepEqual(f.rotations,[[30,60]]);assert.equal(f.captured.size,0);
 });
 test('interactive websites and snapshots retain scrolling and cancel an existing rotation',()=>{
  const f=fixture();f.send('pointerdown');f.setEnabled(false);
