@@ -9,6 +9,7 @@ const categories={
 };
 const numbers=new Set(['width','height','angle','duration_ms','seconds','rate','brightness']);
 const booleans=new Set(['enabled','muted','locked','back','success']);
+const privateSdkProperties=['$current_url','$pathname','$host','$referrer','$referring_domain','$initial_referrer','$initial_referring_domain','$initial_current_url','$initial_pathname','$initial_person_info','$session_entry_url','$session_entry_host','$session_entry_pathname','$session_entry_referrer','$session_entry_referring_domain'];
 export function safeProperties(properties={}){
  const result={};
  for(const [key,value] of Object.entries(properties)){
@@ -20,9 +21,15 @@ export function analyticsOptions(host){
  return {api_host:host,autocapture:false,capture_pageview:false,capture_pageleave:false,
   capture_dead_clicks:false,capture_heatmaps:false,capture_performance:false,capture_exceptions:false,
   disable_session_recording:true,disable_surveys:true,person_profiles:'never',persistence:'localStorage',
-  rageclick:false,save_referrer:false,save_campaign_params:false,
-  property_denylist:['$current_url','$pathname','$referrer','$initial_referrer','$initial_current_url','$initial_pathname'],
-  before_send:event=>event?.event?.startsWith('duo_')?event:null};
+  rageclick:false,save_referrer:false,save_campaign_params:false,disable_capture_url_hashes:true,
+  property_denylist:[...privateSdkProperties],
+  before_send:event=>{
+   if(!/^duo_[a-z_]+$/.test(event?.event||''))return null;
+   if(!event.properties)return event;
+   // Session attribution can restore a URL from SDK persistence after startup.
+   // Scrub the final payload as well as excluding these properties at capture.
+   return {...event,properties:Object.fromEntries(Object.entries(event.properties).filter(([key])=>!privateSdkProperties.includes(key)&&!key.startsWith('$session_entry_')))};
+  }};
 }
 // Load the official browser SDK without adding a build step to the static app.
 export function loadPostHog(config,options){

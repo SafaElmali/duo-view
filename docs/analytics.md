@@ -1,12 +1,12 @@
 # Duo View analytics
 
-Connected to PostHog project 594399 (US Cloud). The public project key and ingestion host are in `dist/analytics-config.mjs`. Do not put a personal API key there. The static app loads the official PostHog browser SDK asynchronously; there is no build-time dependency. Analytics failure does not block the app.
+Connected to the dedicated [Duo View project](https://us.posthog.com/project/606307/activity/explore), project 606307 in Safa Personal Projects (US Cloud). The public project key and ingestion host are in `dist/analytics-config.mjs`. Do not put a personal API key there. The static app loads the official PostHog browser SDK asynchronously; there is no build-time dependency. Analytics failure does not block the app.
 
-Localhost and file previews are disabled by default. For verification, temporarily set `enableLocal: true`, reload, then restore it. Those events have `environment: development`; hosted events have `environment: production`. All events carry `app: duo_view` to separate them from other apps in this shared project.
+Localhost and file previews are disabled by default. For verification, temporarily set `enableLocal: true`, reload, then restore it. Those events have `environment: development`; hosted events have `environment: production`. All events carry `app: duo_view`. There are 48 custom event types. New events go to the dedicated project; historical events in the former Default project (594399) remain there.
 
 ## Properties and privacy
 
-Shared properties describe display, orientation, layout, preview mode, content type, pose, finish, viewport dimensions, and whether content is the demo or a custom website. An allowlist excludes entered URLs, domains, free text, error messages, and snapshot image URLs. PostHog URL/referrer properties are excluded. Autocapture, session recording, heatmaps, error capture, and person profiles are disabled. An anonymous identifier uses local storage.
+Shared properties describe display, orientation, layout, preview mode, content type, pose, finish, viewport dimensions, and whether content is the demo or a custom website. An allowlist excludes entered URLs, domains, free text, error messages, and snapshot image URLs. PostHog URL/referrer properties and session-entry attribution are excluded, including previously persisted values. URL hash capture is disabled so shared preview fragments are not retained by the SDK. Autocapture, session recording, heatmaps, error capture, and person profiles are disabled. An anonymous identifier uses local storage.
 
 ## Events
 
@@ -38,7 +38,7 @@ Controls inside third-party websites are not tracked. Native sliders emit on com
 
 ## Verification
 
-Run `node --test tests/analytics.test.mjs`. Tests cover property filtering, local defaults, early event queuing, gesture rate limits, SDK failure isolation, and control mapping. Browser verification confirmed `duo_opened`, `duo_content_selected`, and `duo_view_selected` arriving in PostHog Activity from the actual app, with no URL / Screen value.
+Run `node --test tests/analytics.test.mjs`. Six tests cover property filtering, shared-link/session attribution filtering, local defaults, early event queuing, gesture rate limits, SDK failure isolation, and control mapping. Browser verification in project 606307 confirmed actual preview requests, snapshot lifecycle, device controls, sharing (including successful copy and shared preview restoration), and playback events. The shared-preview event retained its display settings without URL, referrer, or session-entry URL properties; the URL / Screen column remained empty. Verification events are labeled `environment: development`.
 
 SDK reference: https://posthog.com/docs/libraries/js
 Configuration reference: https://posthog.com/docs/libraries/js/config

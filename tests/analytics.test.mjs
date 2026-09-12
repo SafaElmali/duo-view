@@ -18,6 +18,15 @@ test('missing config and development pages never load analytics by default',asyn
  }
  const a=createAnalytics({}, {location,load});a.start();await tick();assert.equal(loads,0);
 });
+test('shared preview URLs cannot leak through automatic or persisted session attribution',()=>{
+ const shared='https://duo-view.netlify.app/#duo=1&url=https%3A%2F%2Fexample.com%2F';
+ const event={event:'duo_share_copied',properties:{token:'phc_test',distinct_id:'anonymous',$session_id:'session',success:true,app:'duo_view',orientation:'landscape',
+  $current_url:shared,$session_entry_url:shared,$initial_person_info:{properties:{$initial_current_url:shared}},$session_entry_referrer:shared,$session_entry_utm_source:'private campaign',$host:'duo-view.netlify.app'}};
+ const options=analyticsOptions(config.host),filtered=options.before_send(event);
+ assert.equal(options.disable_capture_url_hashes,true);
+ assert.deepEqual(filtered,{event:'duo_share_copied',properties:{token:'phc_test',distinct_id:'anonymous',$session_id:'session',success:true,app:'duo_view',orientation:'landscape'}});
+ assert.equal(event.properties.$session_entry_url,shared);
+});
 test('early events flush once after SDK loads and high-frequency events are limited',async()=>{
  let ready,clock=0;const sent=[];
  const a=createAnalytics(config,{location,now:()=>clock,load:()=>new Promise(resolve=>ready=resolve)});
