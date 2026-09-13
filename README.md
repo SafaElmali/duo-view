@@ -1,4 +1,4 @@
-![Duo View — Your website, in every fold.](docs/assets/duo-view-cover.png)
+![Duo View — Your website, in every fold. Wide foldable phone concept with a continuous display.](docs/assets/duo-view-cover.png)
 
 # Duo View
 

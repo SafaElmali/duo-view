@@ -19,3 +19,22 @@ test('the fully open screen covers the hinge from edge to edge in both orientati
  }
  m.dispose();
 });
+
+test('the inner display and page surfaces share a continuous fold at every opening angle',()=>{
+ const m=createDuoModel();
+ for(const angle of [45,60,100,115,160,179,180])for(const orientation of ['landscape','portrait']){
+  m.fold(angle);m.root.rotation.z=modelRoll('open',orientation);m.root.updateMatrixWorld(true);
+  const leftEdge=m.innerLeftAnchor.localToWorld(new T.Vector3(MODEL.innerWidth/4,0,0));
+  const rightEdge=m.innerRightAnchor.localToWorld(new T.Vector3(-MODEL.innerWidth/4,0,0));
+  assert.ok(leftEdge.distanceTo(rightEdge)<1e-9,`Page edges must meet at ${angle} degrees in ${orientation}`);
+  const turn=-(180-angle)*Math.PI/360;
+  const normal=new T.Vector3(Math.sin(turn),0,Math.cos(turn)),across=new T.Vector3(Math.cos(turn),0,-Math.sin(turn));
+  const direction=normal.clone().negate().transformDirection(m.root.matrixWorld);
+  for(const y of [-MODEL.innerHeight/2+.003,0,MODEL.innerHeight/2-.003])for(const offset of [-.0001,0,.0001]){
+   const origin=new T.Vector3(0,y,MODEL.hingeZ).add(normal).addScaledVector(across,offset).applyMatrix4(m.root.matrixWorld);
+   const hit=new T.Raycaster(origin,direction).intersectObject(m.root,true)[0];
+   assert.ok(m.displays.slice(0,2).includes(hit?.object),`Display must cover the hinge at ${angle} degrees in ${orientation}`);
+  }
+ }
+ m.dispose();
+});

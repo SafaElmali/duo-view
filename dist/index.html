@@ -1,9 +1,84 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Duo View — Your website, in every fold.</title><meta name="description" content="Preview your website on iPhone Duo. Test folded and open layouts in portrait and landscape, or compare all four at once."><meta name="theme-color" content="#f5f6f8"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="viewer.css"><link rel="stylesheet" href="duo-3d.css"><link rel="stylesheet" href="mobile.css"><link rel="stylesheet" href="studio.css"><link rel="stylesheet" href="share-preview.css"><link rel="stylesheet" href="preview-frame.css"></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Duo View — Foldable Website Preview &amp; iPhone Duo Simulator</title>
+  <meta name="description" content="Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.">
+  <meta name="author" content="Safa Elmali">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#f5f6f8">
+  <link rel="canonical" href="https://duo-view.netlify.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Duo View">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Duo View — Your website, in every fold.">
+  <meta property="og:description" content="See your website on a foldable iPhone Duo concept. Fold it, rotate it, compare layouts, and share the preview.">
+  <meta property="og:url" content="https://duo-view.netlify.app/">
+  <meta property="og:image" content="https://duo-view.netlify.app/assets/duo-view-social.png">
+  <meta property="og:image:width" content="1672">
+  <meta property="og:image:height" content="941">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Duo View foldable phone preview with the words Your website, in every fold.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@SafaElmali">
+  <meta name="twitter:title" content="Duo View — Your website, in every fold.">
+  <meta name="twitter:description" content="See your website on a foldable iPhone Duo concept. Fold it, rotate it, compare layouts, and share the preview.">
+  <meta name="twitter:image" content="https://duo-view.netlify.app/assets/duo-view-social.png">
+  <meta name="twitter:image:alt" content="Duo View foldable phone preview with the words Your website, in every fold.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="viewer.css">
+  <link rel="stylesheet" href="duo-3d.css">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="studio.css">
+  <link rel="stylesheet" href="share-preview.css">
+  <link rel="stylesheet" href="preview-frame.css">
+  <link rel="stylesheet" href="preview-help.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://duo-view.netlify.app/#website",
+        "name": "Duo View",
+        "url": "https://duo-view.netlify.app/",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://duo-view.netlify.app/#app",
+        "name": "Duo View",
+        "url": "https://duo-view.netlify.app/",
+        "description": "Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "image": "https://duo-view.netlify.app/assets/duo-view-social.png",
+        "isPartOf": { "@id": "https://duo-view.netlify.app/#website" },
+        "author": {
+          "@type": "Person",
+          "name": "Safa Elmali",
+          "url": "https://x.com/SafaElmali",
+          "sameAs": ["https://x.com/SafaElmali"]
+        }
+      }
+    ]
+  }
+  </script>
+</head>
 <body>
 <a class="skip" href="#workspace">Skip to preview</a>
-<header class="app-header"><a class="brand" href="./" aria-label="Duo View home"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M4 5 14 8v18L4 23Zm12 3 10-3v18l-10 3Z" fill="currentColor"/></svg><strong>duo<span>view</span></strong></a><span class="header-separator"></span><span class="header-description">Your website, in every fold.</span><button class="text-button" id="about-button">About this simulator <span aria-hidden="true">↗</span></button></header>
+<header class="app-header">
+  <a class="brand" href="./" aria-label="Duo View home"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M4 5 14 8v18L4 23Zm12 3 10-3v18l-10 3Z" fill="currentColor"/></svg><strong>duo<span>view</span></strong></a>
+  <span class="header-separator"></span><span class="header-description">Your website, in every fold.</span>
+  <div class="header-actions">
+    <a class="github-link" href="https://github.com/SafaElmali/duo-view" target="_blank" rel="noopener noreferrer" aria-label="Duo View on GitHub (opens in a new tab)">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.725-4.043-1.61-4.043-1.61-.546-1.386-1.333-1.755-1.333-1.755-1.09-.745.083-.729.083-.729 1.205.084 1.838 1.237 1.838 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.776.42-1.305.763-1.605-2.665-.303-5.466-1.332-5.466-5.93 0-1.31.468-2.38 1.235-3.22-.123-.303-.535-1.524.118-3.176 0 0 1.008-.322 3.301 1.23a11.52 11.52 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.805 5.624-5.479 5.921.431.372.816 1.102.816 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.216.696.825.578C20.565 22.296 24 17.799 24 12.5c0-6.63-5.373-12-12-12Z"/></svg>
+      <span>GitHub</span><span class="github-arrow" aria-hidden="true">↗</span>
+    </a>
+    <button class="text-button" id="about-button" aria-label="About this simulator">About<span class="about-label-suffix"> this simulator</span><span class="about-arrow" aria-hidden="true">↗</span></button>
+  </div>
+</header>
 <form class="url-bar" id="url-form">
   <label for="site-url" class="url-label">Website address</label>
   <div class="website-entry">
@@ -45,6 +120,41 @@
 </dialog>
 </main>
 </div>
+<footer class="preview-help" aria-labelledby="faq-title">
+  <div class="preview-help-inner">
+    <div class="preview-help-intro">
+      <p class="preview-help-eyebrow">Before you fold</p>
+      <h2 id="faq-title">A little preview help.</h2>
+      <p class="preview-help-contact">Questions or feedback?<br><a href="https://x.com/SafaElmali" target="_blank" rel="noopener noreferrer">Reach out to @SafaElmali on X <span aria-hidden="true">↗</span></a></p>
+    </div>
+    <div class="preview-help-questions">
+      <details>
+        <summary>How do I preview my website on iPhone Duo?<span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-answer"><p>Paste your website URL and select <strong>Preview on Duo</strong>. Choose Folded or Open, switch between portrait and landscape, and adjust the hinge to see how the layout looks. Use <strong>Compare all</strong> to view all four display configurations together.</p></div>
+      </details>
+      <details>
+        <summary>Why do some websites switch to a snapshot?<span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-answer"><p>Some websites block live embedding. Auto preview switches blocked or slow public pages to a scrollable image captured by Microlink at your selected display size. Snapshots use a fresh browser session, so they won’t include your sign-in. Local and private addresses stay in Live preview.</p></div>
+      </details>
+      <details>
+        <summary>Can I scroll and interact with the preview?<span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-answer"><p>Yes. For an embeddable live website, open the phone flat and choose <strong>Use website</strong> to scroll and click. For a snapshot, choose <strong>Scroll preview</strong>; both halves scroll together, even while bent. Snapshot links and media aren’t interactive. Try the Streaming demo for working playback controls.</p></div>
+      </details>
+      <details>
+        <summary>Can I share my website preview?<span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-answer"><p>Select <strong>Share</strong>, then copy the link. It opens your website with the selected device settings and camera view. Each person gets a fresh preview; your scroll position, video progress, and signed-in sessions aren’t included.</p></div>
+      </details>
+      <details>
+        <summary>Does Duo View work on mobile?<span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-answer"><p>Yes. On smaller screens, open <strong>Device settings</strong> to change the display, orientation, and hinge. Choose <strong>Rotate model</strong> and touch and drag to turn the phone. The 3D preview needs a browser with WebGL support; 2D preview is also available.</p></div>
+      </details>
+      <details>
+        <summary>Is Duo View an official Apple simulator?<span class="faq-icon" aria-hidden="true"></span></summary>
+        <div class="faq-answer"><p>No. Duo View is an independent project and isn’t affiliated with Apple. The phone is an illustrative concept with estimated, editable viewport sizes. Websites render in your current browser, so this is a way to explore responsive layouts, not a replacement for testing on real hardware or in iOS Safari.</p></div>
+      </details>
+    </div>
+  </div>
+</footer>
 <dialog id="mobile-controls-dialog" aria-labelledby="mobile-controls-title"><div class="mobile-settings-heading"><h2 id="mobile-controls-title">Device settings</h2><button id="close-mobile-settings" aria-label="Close device settings">Done</button></div></dialog>
 <dialog id="info-dialog" aria-labelledby="dialog-title"><button class="dialog-close" aria-label="Close information" id="close-dialog">×</button><p class="dialog-eyebrow">DUO VIEW</p><h2 id="dialog-title">A new shape.<br>A familiar website.</h2><p>Enter a URL and choose Preview on Duo. Live preview shows interactive websites that allow embedding. If a public page blocks embedding, Duo View automatically uses a Microlink snapshot so you can scroll it directly on the device. Fold and rotate the model to inspect the layout.</p><div class="dialog-detail"><h3>What’s simulated</h3><p>The 3D model has an animated hinge, two finishes, and front/back inspection. The tabletop preset puts video above the hinge and playback controls below. The streaming player is an independent interactive demo using Sintel by Blender Foundation. Embeddable websites stay visible across the bend as two clipped page views; open the phone flat for synchronized website interaction. Display size, orientation, responsive breakpoints, optional browser chrome, and a visual hinge guide. Folding switches between the outer and inner display; the guide doesn’t create separate screen segments.</p></div><div class="dialog-detail"><h3>Estimated, editable sizes</h3><p>Presets use Apple’s published physical resolutions divided by an assumed 3× scale: outer 466 × 678 and inner 626 × 890 CSS pixels. Actual Safari viewport sizes and safe areas may differ. Edit the dimensions to test your own assumptions.</p></div><div class="dialog-detail"><h3>Snapshots</h3><p>Snapshot sends the public page URL and selected dimensions to Microlink. Scroll or swipe on the Duo screen to explore the captured page. In 3D, both halves scroll together even while the phone is bent. Choose Rotate model to adjust the camera, then Scroll preview to continue scrolling. It captures a fresh browser session, so it cannot show your signed-in pages, play media, or respond to clicks. Local and private addresses are not sent. Captures can be cached, rate-limited, or blocked by the destination site. Rotate or change the display size to request the matching layout.</p></div><div class="dialog-detail"><h3>Your browser does the rendering</h3><p>This isn’t iOS Safari emulation. The preview uses your current browser; it doesn’t change its user agent, pixel density, touch capabilities, or foldable-device APIs.</p></div><div class="dialog-detail"><h3>If a website doesn’t appear</h3><p>Duo View checks public pages for embedding restrictions and automatically switches blocked pages to a Microlink snapshot. If a public preview takes more than 15 seconds to finish loading, it also switches to a snapshot. You can choose Create snapshot manually at any time. Local and private URLs stay in Live preview. Websites can also require sign-in or block automated capture; in that case the preview reports the limitation. For your own website, allow embedding from the simulator’s origin. No new browser window is needed.</p></div><div class="dialog-footer"><a href="https://www.apple.com/iphone-duo/specs/" target="_blank" rel="noopener noreferrer">Apple display specifications ↗</a><span>Independent tool. Not affiliated with Apple.</span></div></dialog>
 

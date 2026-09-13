@@ -53,8 +53,8 @@ export function createDuoModel(){
  for(const [group,sign] of [[left,-1],[rightBody,1]]){
   const body=panel(w-.025,h-.025,halfCorners(.3,sign),d,titanium);body.name=sign<0?'Left_Titanium_Frame':'Right_Titanium_Frame';body.position.set(sign*w/2,0,-d/2);group.add(body);
   const bezel=surface(w-.055,h-.065,halfCorners(.275,sign),black);bezel.position.set(sign*w/2,0,.077);bezel.name='Inner_Bezel';group.add(bezel);
-  // A subpixel overlap prevents floating-point cracks along the shared display edge.
-  const half=surface(MODEL.innerWidth/2+.0002,MODEL.innerHeight,halfCorners(.145,sign),screen.clone());half.position.set(sign*MODEL.innerWidth/4,0,.079);half.name=sign<0?'Inner_Display_Left':'Inner_Display_Right';group.add(half);displays.push(half);
+  // The display lies on the hinge axis, so the inner edges stay joined while folding.
+  const half=surface(MODEL.innerWidth/2+.0002,MODEL.innerHeight,halfCorners(.145,sign),screen.clone());half.position.set(sign*MODEL.innerWidth/4,0,hingeZ);half.name=sign<0?'Inner_Display_Left':'Inner_Display_Right';group.add(half);displays.push(half);
   const back=surface(w-.065,h-.07,halfCorners(.275,-sign),sign===1?black:ceramic);back.rotation.y=Math.PI;back.position.set(sign*w/2,0,-.077);back.name=sign<0?'Ceramic_Back':'Outer_Bezel';group.add(back);
   if(sign===1){const cover=surface(MODEL.outerWidth,MODEL.outerHeight,.15,screen.clone());cover.rotation.y=Math.PI;cover.position.set(w/2,0,-.079);cover.name='Outer_Display';group.add(cover);displays.push(cover);
    const punch=new T.Mesh(new T.CircleGeometry(.057,32),black);punch.rotation.y=Math.PI;punch.position.set(.28,h/2-.28,-.083);punch.name='Front_Camera';group.add(punch);
@@ -67,10 +67,10 @@ export function createDuoModel(){
  const {rear,logoMaterial}=rearHardware(w,h,ceramic,titanium,black);left.add(rear);
  const hinge=new T.Mesh(new T.CylinderGeometry(.058,.058,h-.17,32),titanium);hinge.position.z=-.01;hinge.name='Hinge_Spine';root.add(hinge);
  const usb=surface(.27,.065,.025,black);usb.rotation.x=Math.PI/2;usb.position.set(-w/2,-h/2-.009,.005);usb.name='USB_C_Port';left.add(usb);
- const innerAnchor=new T.Object3D();innerAnchor.name='Inner_Web_Surface';innerAnchor.position.set(0,0,.084);root.add(innerAnchor);
+ const innerAnchor=new T.Object3D();innerAnchor.name='Inner_Web_Surface';innerAnchor.position.set(0,0,hingeZ);root.add(innerAnchor);
  const outerAnchor=new T.Object3D();outerAnchor.name='Outer_Web_Surface';outerAnchor.position.set(w/2,0,-.087);outerAnchor.rotation.y=Math.PI;rightBody.add(outerAnchor);
- const innerLeftAnchor=new T.Object3D();innerLeftAnchor.position.set(-MODEL.innerWidth/4,0,.086);left.add(innerLeftAnchor);
- const innerRightAnchor=new T.Object3D();innerRightAnchor.position.set(MODEL.innerWidth/4,0,.086);rightBody.add(innerRightAnchor);
+ const innerLeftAnchor=new T.Object3D();innerLeftAnchor.position.set(-MODEL.innerWidth/4,0,hingeZ);left.add(innerLeftAnchor);
+ const innerRightAnchor=new T.Object3D();innerRightAnchor.position.set(MODEL.innerWidth/4,0,hingeZ);rightBody.add(innerRightAnchor);
  function fold(angle){if(!Number.isFinite(angle)||angle<0||angle>180)throw new Error('Fold angle must be between 0 and 180.');right.rotation.y=-(180-angle)*Math.PI/180;}
  function finish(value){if(!['white','night'].includes(value))throw new Error('Unknown finish.');titanium.color.set(value==='white'?'#bfc1c4':'#465367');ceramic.color.set(value==='white'?'#f0eee8':'#27354b');logoMaterial.color.set(value==='white'?'#d8d7d2':'#536078');}
  function dispose(){const geometries=new Set(),materials=new Set();root.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}

@@ -2,7 +2,7 @@ import {track} from './analytics.mjs';
 import * as T from './assets/three/three.module.min.js';
 import {CSS3DRenderer,CSS3DObject} from './assets/three/CSS3DRenderer.js';
 import {createDuoModel,MODEL,modelRoll} from './duo-model.mjs';
-import {createDuoPlayer} from './duo-player.mjs?v=2';
+import {createDuoPlayer} from './duo-player.mjs?v=3';
 import {dimensions} from './simulator.mjs';
 import {createSnapshotScroller} from './snapshot-scroll.mjs';
 import {cameraMove,cameraAt,cameraFlip,cameraShowsBack,bookCamera,cameraReframe,CAMERA_ROTATION_ORDER} from './camera-motion.mjs';
@@ -25,7 +25,7 @@ export function createDuoViewer(host){
  const iframe=web.querySelector('iframe');const cssObject=new CSS3DObject(web);cssScene.add(cssObject);
  const splitSurfaces=[0,1].map(index=>{const clip=document.createElement('div');clip.className='duo-split-screen';const page=web.cloneNode(true);page.className='duo-split-page';page.querySelector('.duo-live-hinge').remove();page.querySelector('iframe').title=`Website ${index===0?'first':'second'} half`;clip.append(page);const object=new CSS3DObject(clip);cssScene.add(object);return {clip,page,object,iframe:page.querySelector('iframe')};});
  const snapshotScroll=createSnapshotScroller([iframe,...splitSurfaces.map(surface=>surface.iframe)]);
- const player=createDuoPlayer();const cover=document.createElement('div');cover.className='duo-player-cover';web.append(cover);
+ const player=createDuoPlayer();host.append(player.video);const cover=document.createElement('div');cover.className='duo-player-cover';web.append(cover);
  const fallback=host.querySelector('.duo-model-message'),backButton=host.querySelector('.duo-back');
  let state=null,angle=180,target=180,roll=0,targetRoll=0,yaw=-.22,pitch=.14,zoom=1,active=false,frame=0,last=0,interact=false,live=false,disposed=false,cameraAnimation=null;
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -52,7 +52,7 @@ export function createDuoViewer(host){
  function wake(){if(active&&!frame&&!document.hidden&&!disposed)frame=requestAnimationFrame(render);}
  function cameraDistance(){camera.position.z=fitCamera({aspect:camera.aspect,fov:camera.fov,zoom});}
  function resize(){const width=host.clientWidth,height=Math.max(180,host.clientHeight-105);if(width<1||height<1)return;canvas.style.height=`${height}px`;surfaceHost.style.height=`${height}px`;renderer.setSize(width,height,false);cssRenderer.setSize(width,height);camera.aspect=width/height;cameraDistance();camera.updateProjectionMatrix();wake();}
- function mount(parent,element){if(element.parentNode===parent)return;const resume=!player.video.paused;parent.append(element);if(resume)player.video.play().catch(()=>{});}
+ function mount(parent,element){if(element.parentNode!==parent)parent.append(element);}
  function syncSplit(size){
   const portrait=state.orientation==='portrait',isPlayer=playingDemo(),show=getMode()==='open'&&(isPlayer||(live&&angle>4&&angle<179.2));
   const cropW=portrait?size.width:size.width/2,cropH=portrait?size.height/2:size.height;
@@ -110,13 +110,14 @@ export function createDuoViewer(host){
   if(!snapshotMode()&&!playingDemo()&&target>1&&target<179)interact=false;
   snapshotScroll.update(snapshotMode()?next.snapshot:null);
   if(wasPlayer&&!playingDemo())player.pause();
+  player.setActive(active&&playingDemo());
   live=next.demo||next.mode==='embedded'||snapshotMode();const src=live&&!playingDemo()?next.url:'about:blank';
   function source(frame,enabled){
    navigatePreviewFrame(frame,{url:enabled?src:'about:blank',html:snapshotMode()&&enabled?next.snapshotPage:null,onTimeout:next.onPreviewTimeout});
   }
   source(iframe,true);for(const surface of splitSurfaces)source(surface.iframe,snapshotMode()||target>1&&target<179);
   const button=host.querySelector('.duo-interact');button.disabled=!snapshotMode()&&!playingDemo()&&(!live||target>1&&target<179);button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);host.classList.toggle('has-player',playingDemo());message();wake();}
- function setActive(value){active=value;if(!active){player.pause();if(frame){cancelAnimationFrame(frame);frame=0;}}surfaceHost.hidden=!active;if(active)resize();}
+ function setActive(value){active=value;player.setActive(active&&playingDemo());if(!active){player.pause();if(frame){cancelAnimationFrame(frame);frame=0;}}surfaceHost.hidden=!active;if(active)resize();}
  function reset(){animateCamera(defaultCamera());}
  function getCamera(){return {...(cameraAnimation?.to??{yaw,pitch,zoom})};}
  function restoreCamera(value){
@@ -142,5 +143,5 @@ export function createDuoViewer(host){
  host.querySelector('.duo-interact').addEventListener('click',event=>{interact=!interact;host.classList.toggle('use-website',interact);event.currentTarget.setAttribute('aria-pressed',String(interact));event.currentTarget.textContent=interactionLabel();message();wake();});
  new ResizeObserver(resize).observe(host);document.addEventListener('visibilitychange',wake);
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();active=false;surfaceHost.hidden=true;fallback.textContent='3D graphics paused. Reload to restore, or use the 2D preview.';});
- return {update,setActive,reset,startPlayer,getCamera,restoreCamera,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){for(const frame of [iframe,...splitSurfaces.map(surface=>surface.iframe)])if(frame===iframe||frame.getAttribute('src')!=='about:blank')navigatePreviewFrame(frame,{url:live?state.url:'about:blank',onTimeout:state.onPreviewTimeout,force:true});}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;removeGestures();cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
+ return {update,setActive,reset,startPlayer,getCamera,restoreCamera,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){for(const frame of [iframe,...splitSurfaces.map(surface=>surface.iframe)])if(frame===iframe||frame.getAttribute('src')!=='about:blank')navigatePreviewFrame(frame,{url:live?state.url:'about:blank',onTimeout:state.onPreviewTimeout,force:true});}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;player.dispose();removeGestures();cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
 }
