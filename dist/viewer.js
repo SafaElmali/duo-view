@@ -55,7 +55,7 @@ function syncFrameSources(){
  if(state.view==='compare')for(const item of comparisonFrames)setFrameSource(item.iframe,dimensions(item.display,item.orientation,state.chrome));
 }
 function renderPreviewMode(){
- $('#zoom').disabled=state.view==='three';$('#preview-mode').value=state.mode;modePicker?.sync();
+ $('#preview-mode').value=state.mode;modePicker?.sync();
  $('#embed-notice').hidden=isDemo()||isSnapshot()||state.content==='player';
  const checking=embedFallback.getState();
  $('#embed-message').textContent=checking==='checking'?'Checking whether this page allows live preview…':checking==='local'?'Live preview only for local or private URLs.':checking==='unknown'?'Could not check this page. Trying live preview…':'Live preview · Blocked or stalled pages switch to a snapshot.';
@@ -101,7 +101,7 @@ function update(){
   $('#fold-angle').value=String(state.foldAngle);
   $('#fold-angle-output').value=`${Math.round(state.foldAngle)}°`;
   $('#single-scene').hidden=state.view!=='single';$('#comparison').hidden=state.view!=='compare';
-  $('#chrome-toggle').checked=state.chrome;$('#hinge-toggle').checked=state.hinge;$('#zoom').value=state.zoom;
+  $('#chrome-toggle').checked=state.chrome;$('#hinge-toggle').checked=state.hinge;
   $('#hinge-toggle').disabled=state.display==='folded'&&state.view==='single';
   if(state.view==='compare'&&!comparisonFrames.length)buildComparison();
   syncFrameSources();
@@ -180,7 +180,6 @@ $$('[data-orientation]').forEach(button=>button.addEventListener('click',()=>cha
 $$('[data-view]').forEach(button=>button.addEventListener('click',()=>changeView(button.dataset.view)));
 $('#chrome-toggle').addEventListener('change',event=>{state.chrome=event.target.checked;update();});
 $('#hinge-toggle').addEventListener('change',event=>{state.hinge=event.target.checked;update();});
-$('#zoom').addEventListener('change',event=>{state.zoom=event.target.value;requestFit();});
 function clearDimensionError(){$('#dimension-error').hidden=true;$('#viewport-width').removeAttribute('aria-invalid');$('#viewport-height').removeAttribute('aria-invalid');}
 for(const selector of ['#viewport-width','#viewport-height'])$(selector).addEventListener('change',()=>{
   const width=Number($('#viewport-width').value),height=Number($('#viewport-height').value);
@@ -247,7 +246,8 @@ function restoreSharedPreview(){
  catch(error){urlError(error.message);return false;}
  if(!shared)return false;
  automaticSnapshotUrl=null;automaticSnapshotReason=null;
- Object.assign(state,shared.state);
+ // Older links may include the retired toolbar zoom; all page previews now fit automatically.
+ Object.assign(state,shared.state,{zoom:'fit'});
  $('#site-url').value=isDemo()?'':state.url;
  $('#url-error').hidden=true;$('#site-url').removeAttribute('aria-invalid');clearDimensionError();
  embedFallback.retry();update();

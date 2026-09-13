@@ -32,7 +32,6 @@
  .mobile-settings-button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 12px;border:1px solid #dce4f2;border-radius:9px;background:#fff;color:#40567b;font-size:12px;justify-self:start}
  .mobile-settings-button svg{width:17px;height:17px;flex:none}
  .toolbar-right{gap:6px;justify-content:flex-end;min-width:0}
- .toolbar-right select{min-height:40px;font-size:14px;max-width:80px;padding:5px 8px}
  .toolbar-right .icon-button{min-width:40px;min-height:40px;padding:0;margin:0;border:0}
  .stage{height:max(390px,calc(100svh - 368px));min-height:0;flex:none}
  .duo-three-scene{height:100%;min-height:0}

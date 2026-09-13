@@ -99,8 +99,16 @@ export function createDuoViewer(host){
   if(cameraAnimation){const next=cameraAt(cameraAnimation,now);yaw=next.yaw;pitch=next.pitch;zoom=next.zoom;cameraDistance();if(next.done)cameraAnimation=null;}
   syncCameraButton();
   const dt=Math.min((now-last)/1000,.05);last=now;const speed=reduce?1:1-Math.exp(-11*dt);angle=T.MathUtils.lerp(angle,target,speed);roll=T.MathUtils.lerp(roll,targetRoll,speed);if(Math.abs(angle-target)<.015)angle=target;if(Math.abs(roll-targetRoll)<.001)roll=targetRoll;phone.fold(angle);center.position.x=MODEL.halfWidth*(1-Math.max(0,Math.cos((180-angle)*Math.PI/180)))/2;center.position.z=-MODEL.halfWidth*Math.sin((180-angle)*Math.PI/180)/2;orbit.rotation.set(pitch,yaw,roll,CAMERA_ROTATION_ORDER);scene.updateMatrixWorld(true);cameraDistance();camera.updateMatrixWorld();syncWeb();renderer.render(scene,camera);cssRenderer.render(cssScene,camera);host.dataset.rendered='true';if(cameraAnimation||Math.abs(angle-target)>.01||Math.abs(roll-targetRoll)>.001)wake();}
- function interactionLabel(){return interact?'Rotate model':snapshotMode()?'Scroll preview':playingDemo()?'Use player':'Use website';}
- function message(){if(snapshotMode()){fallback.textContent=interact?'Scroll or swipe on either screen · Both halves move together.':'Drag to rotate · Choose “Scroll preview” to explore the page.';return;}fallback.textContent=playingDemo()?(interact?'Touch and drag or click and drag the video to rotate · Playback controls stay active.':'Touch and drag or click and drag to rotate · Choose “Use player” for playback controls.'):(live?(target>1&&target<179?'Two page views across the bend. Open flat to interact.':'Drag to rotate. Choose “Use website” to interact.'):'Enter a website URL to preview it on the phone.');}
+ function needsFlatWebsite(){return live&&!snapshotMode()&&!playingDemo()&&target>1&&target<179;}
+ function interactionLabel(){return needsFlatWebsite()?'Open flat first':interact?'Rotate model':snapshotMode()?'Scroll preview':playingDemo()?'Use player':'Use website';}
+ function message(){
+  if(snapshotMode())fallback.textContent=interact?'Scroll or swipe on either screen · Both halves move together.':'Drag to rotate · Choose “Scroll preview” to explore the page.';
+  else if(playingDemo())fallback.textContent=interact?'Touch and drag or click and drag the video to rotate · Playback controls stay active.':'Touch and drag or click and drag to rotate · Choose “Use player” for playback controls.';
+  else if(needsFlatWebsite())fallback.textContent='Live website controls are paused while bent. Select Flat to scroll and click.';
+  else if(live)fallback.textContent=interact?'Scroll and click on the website · Choose “Rotate model” to turn the phone.':'Drag to rotate · Choose “Use website” to scroll and click.';
+  else fallback.textContent='Enter a website URL to preview it on the phone.';
+  const button=host.querySelector('.duo-interact');button.title=button.disabled?fallback.textContent:'';
+ }
  function update(next){
   const previousPose=state?.pose,orientationChanged=Boolean(state)&&state.orientation!==next.orientation;
   const wasBack=cameraShowsBack(cameraAnimation?.to??{yaw,pitch},defaultCamera().yaw),wasPlayer=playingDemo(),wasSnapshot=snapshotMode();
@@ -116,7 +124,7 @@ export function createDuoViewer(host){
    navigatePreviewFrame(frame,{url:enabled?src:'about:blank',html:snapshotMode()&&enabled?next.snapshotPage:null,onTimeout:next.onPreviewTimeout});
   }
   source(iframe,true);for(const surface of splitSurfaces)source(surface.iframe,snapshotMode()||target>1&&target<179);
-  const button=host.querySelector('.duo-interact');button.disabled=!snapshotMode()&&!playingDemo()&&(!live||target>1&&target<179);button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);host.classList.toggle('has-player',playingDemo());message();wake();}
+  const button=host.querySelector('.duo-interact');button.disabled=needsFlatWebsite()||!snapshotMode()&&!playingDemo()&&!live;button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);host.classList.toggle('has-player',playingDemo());message();wake();}
  function setActive(value){active=value;player.setActive(active&&playingDemo());if(!active){player.pause();if(frame){cancelAnimationFrame(frame);frame=0;}}surfaceHost.hidden=!active;if(active)resize();}
  function reset(){animateCamera(defaultCamera());}
  function getCamera(){return {...(cameraAnimation?.to??{yaw,pitch,zoom})};}

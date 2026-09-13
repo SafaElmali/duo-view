@@ -100,7 +100,6 @@ export function bindAnalyticsControls(root,capture=track){
   if(el.matches('#preview-mode'))capture('duo_preview_mode_selected');
   if(el.matches('#chrome-toggle,#hinge-toggle'))capture('duo_preview_option_changed',{control:el.id==='chrome-toggle'?'browser_chrome':'hinge_guide',enabled:el.checked});
   if(el.matches('#fold-angle'))capture('duo_hinge_changed',{angle:Number(el.value)});
-  if(el.matches('#zoom'))capture('duo_zoom_selected',{zoom:el.value});
   if(el.matches('#viewport-width,#viewport-height'))capture('duo_dimensions_changed');
   if(el.matches('.player-progress input'))capture('duo_player_seeked',{seconds:Number(el.value)});
  });

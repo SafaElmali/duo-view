@@ -19,11 +19,7 @@
 body:has(#share-dialog[open]){overflow:hidden}
 @media(min-width:901px) and (max-width:1250px){.toolbar-right .demo-tag{display:none}.toolbar-right{gap:10px}}
 @media(max-width:900px){
- .toolbar-right #zoom{display:none}
- .toolbar-right:has(#zoom:not(:disabled)) #zoom{display:block;max-width:66px}
  .share-preview-button{min-height:40px;padding:0 10px}
- .toolbar-right:has(#zoom:not(:disabled)) .share-preview-button span{display:none}
- .toolbar-right:has(#zoom:not(:disabled)) .share-preview-button{width:40px;padding:0}
  #share-dialog{padding:24px}
  #share-link{font-size:16px}
 }
