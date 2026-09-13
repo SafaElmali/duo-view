@@ -6,6 +6,12 @@
 
 A responsive website preview for iPhone Duo: folded/open × portrait/landscape, side-by-side comparison, optional browser chrome and hinge guide, editable dimensions, automatic fitting, pinch-to-zoom in 3D, and fullscreen. Includes a responsive interactive demo.
 
+## See Duo View in action
+
+A 20-second product film made with Remotion, with original electronic music.
+
+https://github.com/user-attachments/assets/841004a2-b4d8-491c-a9e7-7d07b410c0d8
+
 On phones and small tablets, the preview comes first; Device settings opens the same controls in a bottom panel.
 
 Use **Share** in the preview toolbar, then **Copy link**, to send someone the current website or streaming demo. Links restore the layout, display, orientation, hinge angle, finish, browser chrome, hinge guide, custom viewport, and 3D camera (including its zoom). They load a fresh preview: live pages run the usual embedding check and snapshot links request a new capture. Scroll position, player progress, and signed-in sessions are not shared. The versioned URL fragment holds the settings without a link database. Local/file builds generate links to the public Netlify app, which must have this feature deployed; other hosted builds retain their own URL. Local/private websites and URLs containing obvious access parameters cannot be shared. Invalid links show an error and leave the current preview intact.
