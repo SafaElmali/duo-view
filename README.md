@@ -10,7 +10,7 @@ A responsive website preview for iPhone Duo: folded/open × portrait/landscape, 
 
 A 20-second product film made with Remotion, with original electronic music.
 
-https://github.com/user-attachments/assets/841004a2-b4d8-491c-a9e7-7d07b410c0d8
+https://github.com/user-attachments/assets/7a50e3c2-9c0e-4907-828e-6bdec2d0fb83
 
 On phones and small tablets, the preview comes first; Device settings opens the same controls in a bottom panel.
 
