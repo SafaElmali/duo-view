@@ -20,20 +20,6 @@ Run `node scripts/serve.mjs` and open http://127.0.0.1:4317. This dependency-fre
 
 Connect this repository to Netlify. The included `netlify.toml` runs the tests and publishes `dist`; no environment variables or API keys are required. Changes pushed to `main` deploy automatically once the repository is connected. The `embed-check` Netlify Function checks public pages for embedding restrictions; no third-party credentials are required.
 
-## Marketing video
-
-The [editable Remotion project](marketing/README.md) creates a 28-second landscape film at 1920 × 1080 and 30 fps, with animated product shots, website scrolling, streaming controls, and an original music bed. The assets are bundled for rendering without external services.
-
-```sh
-cd marketing
-npm ci
-npm run studio
-# Export the MP4:
-npm run render
-```
-
-The export is saved to `marketing/out/duo-view-marketing-1080p.mp4`. Generated exports and installed dependencies are excluded from Git. See the [project README](marketing/README.md) for the storyboard, editing guide, and asset credits.
-
 ## Accuracy and limitations
 
 - Presets derive from Apple's published screen resolutions with an **assumed 3× scale**: 466 × 678 outer and 626 × 890 inner. These are estimates, not confirmed Safari CSS viewport dimensions. Source: https://www.apple.com/iphone-duo/specs/
