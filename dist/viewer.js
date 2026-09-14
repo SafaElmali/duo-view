@@ -256,7 +256,9 @@ bindPreviewSharing({
  getPreview(){
   const source=state.content==='player'?'Streaming demo':isDemo()?'Demo website':new URL(state.url).hostname;
   const layout=state.view==='three'?`${state.pose==='tabletop'?'Tabletop':state.pose==='book'?'Book':state.display==='folded'?'Folded':'Flat'} · ${Math.round(state.foldAngle)}°`:state.view==='single'?'2D preview':'Compare all';
-  return {url:createPreviewLink(state,{href:location.href,demoUrl,camera:modelViewer?.getCamera()}),summary:`${source} · ${layout} · ${state.orientation==='portrait'?'Portrait':'Landscape'}`};
+  const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
+  const viewport=state.view==='compare'?'Four preset viewports':`${size.width} × ${size.contentHeight} CSS px`;
+  return {url:createPreviewLink(state,{href:location.href,demoUrl,camera:modelViewer?.getCamera()}),summary:`${source} · ${layout} · ${state.orientation==='portrait'?'Portrait':'Landscape'} · ${viewport}`};
  },onEvent:track
 });
 function restoreSharedPreview(){
