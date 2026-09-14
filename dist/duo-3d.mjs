@@ -9,7 +9,7 @@ import {cameraMove,cameraAt,cameraFlip,cameraShowsBack,bookCamera,cameraReframe,
 import {bindCameraGestures} from './camera-gestures.mjs';
 import {navigatePreviewFrame} from './preview-frame.mjs';
 import {createCameraFit} from './camera-fit.mjs';
-export function createDuoViewer(host){
+export function createDuoViewer(host,{onScrollPreview,onOpenFlat}={}){
  const canvas=host.querySelector('canvas'),surfaceHost=host.querySelector('.duo-web-layer');
  const renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor(0xffffff,0);
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(32,1,.1,50);camera.position.set(0,0,10);camera.lookAt(0,0,0);
@@ -27,6 +27,9 @@ export function createDuoViewer(host){
  const snapshotScroll=createSnapshotScroller([iframe,...splitSurfaces.map(surface=>surface.iframe)]);
  const player=createDuoPlayer();host.append(player.video);const cover=document.createElement('div');cover.className='duo-player-cover';web.append(cover);
  const fallback=host.querySelector('.duo-model-message'),backButton=host.querySelector('.duo-back');
+ const hint=document.createElement('span'),openFlat=document.createElement('button');
+ openFlat.type='button';openFlat.className='duo-open-flat';openFlat.textContent='Open flat';openFlat.hidden=true;
+ openFlat.addEventListener('click',()=>onOpenFlat?.());fallback.replaceChildren(hint,openFlat);
  let state=null,angle=180,target=180,roll=0,targetRoll=0,yaw=-.22,pitch=.14,zoom=1,active=false,frame=0,last=0,interact=false,live=false,disposed=false,cameraAnimation=null;
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const getMode=()=>angle<4?'folded':'open';
@@ -99,15 +102,32 @@ export function createDuoViewer(host){
   if(cameraAnimation){const next=cameraAt(cameraAnimation,now);yaw=next.yaw;pitch=next.pitch;zoom=next.zoom;cameraDistance();if(next.done)cameraAnimation=null;}
   syncCameraButton();
   const dt=Math.min((now-last)/1000,.05);last=now;const speed=reduce?1:1-Math.exp(-11*dt);angle=T.MathUtils.lerp(angle,target,speed);roll=T.MathUtils.lerp(roll,targetRoll,speed);if(Math.abs(angle-target)<.015)angle=target;if(Math.abs(roll-targetRoll)<.001)roll=targetRoll;phone.fold(angle);center.position.x=MODEL.halfWidth*(1-Math.max(0,Math.cos((180-angle)*Math.PI/180)))/2;center.position.z=-MODEL.halfWidth*Math.sin((180-angle)*Math.PI/180)/2;orbit.rotation.set(pitch,yaw,roll,CAMERA_ROTATION_ORDER);scene.updateMatrixWorld(true);cameraDistance();camera.updateMatrixWorld();syncWeb();renderer.render(scene,camera);cssRenderer.render(cssScene,camera);host.dataset.rendered='true';if(cameraAnimation||Math.abs(angle-target)>.01||Math.abs(roll-targetRoll)>.001)wake();}
- function needsFlatWebsite(){return live&&!snapshotMode()&&!playingDemo()&&target>1&&target<179;}
- function interactionLabel(){return needsFlatWebsite()?'Open flat first':interact?'Rotate model':snapshotMode()?'Scroll preview':playingDemo()?'Use player':'Use website';}
+ function bentWebsite(){return live&&!snapshotMode()&&!playingDemo()&&target>1&&target<179;}
+ function interactionLabel(){
+  if(snapshotMode()&&state.snapshot?.pending)return 'Preparing preview…';
+  if(snapshotMode()&&state.snapshot?.error)return 'Try snapshot again';
+  if(bentWebsite())return state.canSnapshot?'Scroll preview':'Use website';
+  return interact?'Rotate model':snapshotMode()?'Scroll preview':playingDemo()?'Use player':'Use website';
+ }
+ function syncInteraction(){
+  const button=host.querySelector('.duo-interact'),busy=snapshotMode()&&Boolean(state.snapshot?.pending);
+  button.disabled=busy||!snapshotMode()&&!playingDemo()&&!live;
+  button.classList.toggle('preview-action',bentWebsite()||Boolean(snapshotMode()&&state.snapshot?.error));
+  button.setAttribute('aria-busy',String(busy));button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();
+  host.classList.toggle('use-website',interact);message();wake();
+ }
  function message(){
-  if(snapshotMode())fallback.textContent=interact?'Scroll or swipe on either screen · Both halves move together.':'Drag to rotate · Choose “Scroll preview” to explore the page.';
-  else if(playingDemo())fallback.textContent=interact?'Touch and drag or click and drag the video to rotate · Playback controls stay active.':'Touch and drag or click and drag to rotate · Choose “Use player” for playback controls.';
-  else if(needsFlatWebsite())fallback.textContent='Live website controls are paused while bent. Select Flat to scroll and click.';
-  else if(live)fallback.textContent=interact?'Scroll and click on the website · Choose “Rotate model” to turn the phone.':'Drag to rotate · Choose “Use website” to scroll and click.';
-  else fallback.textContent='Enter a website URL to preview it on the phone.';
-  const button=host.querySelector('.duo-interact');button.title=button.disabled?fallback.textContent:'';
+  openFlat.hidden=true;
+  if(snapshotMode()){
+   if(state.snapshot?.pending)hint.textContent='Preparing your scrollable snapshot…';
+   else if(state.snapshot?.error){hint.textContent='Snapshot unavailable. Try again, or use a live website. ';openFlat.hidden=false;}
+   else hint.textContent=interact?'Snapshot · scroll only. Scroll or swipe on either screen.':'Snapshot · scroll only. Choose “Scroll preview” to explore the page.';
+  }else if(playingDemo())hint.textContent=interact?'Touch and drag or click and drag the video to rotate · Playback controls stay active.':'Touch and drag or click and drag to rotate · Choose “Use player” for playback controls.';
+  else if(bentWebsite()&&state.canSnapshot){hint.textContent='Scroll this view using a snapshot. Want to click links? ';openFlat.hidden=false;}
+  else if(bentWebsite())hint.textContent='“Use website” opens this page flat for scrolling and clicking.';
+  else if(live)hint.textContent=interact?'Live website · Scroll and click on the website. Choose “Rotate model” to turn the phone.':'Live website · Choose “Use website” to scroll and click.';
+  else hint.textContent='Enter a website URL to preview it on the phone.';
+  const button=host.querySelector('.duo-interact');button.title=button.disabled?hint.textContent:'';
  }
  function update(next){
   const previousPose=state?.pose,orientationChanged=Boolean(state)&&state.orientation!==next.orientation;
@@ -124,9 +144,13 @@ export function createDuoViewer(host){
    navigatePreviewFrame(frame,{url:enabled?src:'about:blank',html:snapshotMode()&&enabled?next.snapshotPage:null,onTimeout:next.onPreviewTimeout});
   }
   source(iframe,true);for(const surface of splitSurfaces)source(surface.iframe,snapshotMode()||target>1&&target<179);
-  const button=host.querySelector('.duo-interact');button.disabled=needsFlatWebsite()||!snapshotMode()&&!playingDemo()&&!live;button.setAttribute('aria-pressed',String(interact));button.textContent=interactionLabel();host.classList.toggle('use-website',interact);host.classList.toggle('has-player',playingDemo());message();wake();}
+  host.classList.toggle('has-player',playingDemo());syncInteraction();}
  function setActive(value){active=value;player.setActive(active&&playingDemo());if(!active){player.pause();if(frame){cancelAnimationFrame(frame);frame=0;}}surfaceHost.hidden=!active;if(active)resize();}
  function reset(){animateCamera(defaultCamera());}
+ function useWebsite(){
+  if(!live||snapshotMode()||playingDemo()||bentWebsite())return;
+  interact=true;syncInteraction();
+ }
  function getCamera(){return {...(cameraAnimation?.to??{yaw,pitch,zoom})};}
  function restoreCamera(value){
   if(!value||![value.yaw,value.pitch,value.zoom].every(Number.isFinite)||value.zoom<.7||value.zoom>1.4)return;
@@ -148,8 +172,12 @@ export function createDuoViewer(host){
  canvas.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','+','-'].includes(event.key))return;event.preventDefault();track(event.key==='Home'?'duo_camera_reset':event.key==='+'||event.key==='-'?'duo_model_zoomed':'duo_model_rotated',{input:'keyboard'},1500);cameraAnimation=null;if(event.key==='ArrowLeft')yaw-=.16;if(event.key==='ArrowRight')yaw+=.16;if(event.key==='ArrowUp')pitch-=.12;if(event.key==='ArrowDown')pitch+=.12;if(event.key==='Home')reset();if(event.key==='+')zoom=Math.min(1.4,zoom+.1);if(event.key==='-')zoom=Math.max(.7,zoom-.1);resize();});
  host.querySelector('.duo-reset').addEventListener('click',reset);
  backButton.addEventListener('click',()=>{const current={yaw,pitch,zoom};animateCamera(cameraFlip(current,defaultCamera().yaw,cameraAnimation?.to??current));interact=false;host.classList.remove('use-website');host.querySelector('.duo-interact').setAttribute('aria-pressed','false');host.querySelector('.duo-interact').textContent=interactionLabel();message();wake();});
- host.querySelector('.duo-interact').addEventListener('click',event=>{interact=!interact;host.classList.toggle('use-website',interact);event.currentTarget.setAttribute('aria-pressed',String(interact));event.currentTarget.textContent=interactionLabel();message();wake();});
+ host.querySelector('.duo-interact').addEventListener('click',()=>{
+  if(bentWebsite()){if(state.canSnapshot)onScrollPreview?.();else onOpenFlat?.();return;}
+  if(snapshotMode()&&state.snapshot?.error){onScrollPreview?.();return;}
+  interact=!interact;syncInteraction();
+ });
  new ResizeObserver(resize).observe(host);document.addEventListener('visibilitychange',wake);
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();active=false;surfaceHost.hidden=true;fallback.textContent='3D graphics paused. Reload to restore, or use the 2D preview.';});
- return {update,setActive,reset,startPlayer,getCamera,restoreCamera,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){for(const frame of [iframe,...splitSurfaces.map(surface=>surface.iframe)])if(frame===iframe||frame.getAttribute('src')!=='about:blank')navigatePreviewFrame(frame,{url:live?state.url:'about:blank',onTimeout:state.onPreviewTimeout,force:true});}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;player.dispose();removeGestures();cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
+ return {update,setActive,reset,startPlayer,useWebsite,getCamera,restoreCamera,reload(){if(playingDemo()){player.video.currentTime=0;player.pause();}else if(state){for(const frame of [iframe,...splitSurfaces.map(surface=>surface.iframe)])if(frame===iframe||frame.getAttribute('src')!=='about:blank')navigatePreviewFrame(frame,{url:live?state.url:'about:blank',onTimeout:state.onPreviewTimeout,force:true});}},getState:()=>({requestedAngle:Math.round(target),angle:Math.round(angle),display:getMode(),orientation:state?.orientation,finish:state?.finish||'white',liveWebsite:live&&!playingDemo()&&!snapshotMode(),snapshot:snapshotMode(),snapshotScroll:snapshotMode()?snapshotScroll.getState():null,splitWebsite:live&&!playingDemo()&&!snapshotMode()&&target>1&&target<179,pose:state?.pose,player:playingDemo()?player.getState():null,rendered:host.dataset.rendered==='true'}),dispose(){disposed=true;player.dispose();removeGestures();cancelAnimationFrame(frame);snapshotScroll.dispose();phone.dispose();wallpaper.dispose();environment.dispose();renderer.dispose();}};
 }

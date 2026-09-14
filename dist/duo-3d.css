@@ -86,3 +86,12 @@
 @media(max-width:900px){.url-bar #preview-mode-trigger{min-width:105px;font-size:10px;padding:0 4px;gap:6px}}
 @media(max-width:700px){.url-bar #preview-mode-trigger{min-width:111px;font-size:11px}}
 @media(max-width:480px){.url-bar #preview-mode-trigger{width:116px;padding:0 2px}}
+
+/* Keep the inline live-preview action clickable without capturing model drags. */
+.duo-model-message .duo-open-flat{pointer-events:auto;display:inline;border:0;background:none;color:#3155f5;font:inherit;font-weight:600;line-height:inherit;padding:4px 2px;margin:-4px -2px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;white-space:nowrap}
+.duo-model-message .duo-open-flat[hidden]{display:none}
+.duo-model-message .duo-open-flat:hover{color:#1939b8}
+.duo-model-message .duo-open-flat:focus-visible{outline:2px solid #3155f5;outline-offset:3px;border-radius:3px}
+
+.duo-render-host .duo-actions button.preview-action:not(:disabled){background:var(--blue,#3155f5);color:#fff}
+.duo-render-host .duo-actions button.preview-action:hover:not(:disabled){background:#1939b8;color:#fff}

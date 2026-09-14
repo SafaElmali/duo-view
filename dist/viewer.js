@@ -210,15 +210,34 @@ window.addEventListener('message',event=>{
   if(!Number.isInteger(event.data.width)||!Number.isInteger(event.data.height))return;
   $('#viewport-readout').textContent=`Live viewport: ${event.data.width} × ${event.data.height}`;
 });
+function canSnapshotWebsite(){
+ if(isDemo()||state.content!=='website')return false;
+ try{validateSnapshotUrl(state.url);return true;}catch{return false;}
+}
+function scrollWebsitePreview(){
+ try{
+  if(isSnapshot()){
+   const key=captureKey(dimensions(state.display,state.orientation,state.chrome,state.custom));
+   if(captures.get(key)?.pending)return;
+   captures.get(key)?.controller?.abort();captures.delete(key);update();
+  }else changeMode('snapshot');
+  track('duo_scroll_preview_requested');
+ }catch(error){urlError(error.message);}
+}
+function openWebsiteFlat(){
+ state.display='open';state.pose='flat';state.foldAngle=180;state.view='three';state.content='website';
+ changeMode('embedded');modelViewer?.reset();modelViewer?.useWebsite();
+ track('duo_open_flat_clicked');
+}
 function updateModel(){
   if(state.view==='three'&&!modelViewer&&!modelFailed){
-    try{modelViewer=createDuoViewer($('#duo-render-host'));}
+    try{modelViewer=createDuoViewer($('#duo-render-host'),{onScrollPreview:scrollWebsitePreview,onOpenFlat:openWebsiteFlat});}
     catch(error){modelFailed=true;$('#duo-render-host .duo-model-message').textContent='3D graphics are unavailable in this browser. The 2D preview is still available.';console.warn('3D preview unavailable',error);}
   }
   if(modelViewer){
     const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
     const snapshot=isSnapshot()&&state.view==='three'?{...getCapture(size),key:captureKey(size),contentHeight:size.contentHeight}:null;
-    modelViewer.update({...state,demo:isDemo(),snapshot,snapshotPage:snapshot?snapshotDocument(snapshot):null,onPreviewTimeout:previewTimedOut});modelViewer.setActive(state.view==='three');
+    modelViewer.update({...state,demo:isDemo(),canSnapshot:canSnapshotWebsite(),snapshot,snapshotPage:snapshot?snapshotDocument(snapshot):null,onPreviewTimeout:previewTimedOut});modelViewer.setActive(state.view==='three');
   }
 }
 $('#fold-angle').addEventListener('input',event=>{state.foldAngle=Number(event.target.value);state.display=state.foldAngle<4?'folded':'open';state.custom=null;update();});
