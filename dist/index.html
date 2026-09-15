@@ -9,6 +9,7 @@
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#f5f6f8">
   <link rel="canonical" href="https://duo-view.netlify.app/">
+  <link rel="alternate" type="text/plain" href="llms.txt" title="Duo View product guide for AI tools">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Duo View">
   <meta property="og:locale" content="en_US">
@@ -49,7 +50,18 @@
         "@id": "https://duo-view.netlify.app/#website",
         "name": "Duo View",
         "url": "https://duo-view.netlify.app/",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": { "@id": "https://duo-view.netlify.app/#author" }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://duo-view.netlify.app/#webpage",
+        "url": "https://duo-view.netlify.app/",
+        "name": "Duo View — Foldable Website Preview & iPhone Duo Simulator",
+        "description": "Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.",
+        "inLanguage": "en",
+        "isPartOf": { "@id": "https://duo-view.netlify.app/#website" },
+        "mainEntity": { "@id": "https://duo-view.netlify.app/#app" }
       },
       {
         "@type": "WebApplication",
@@ -59,10 +71,31 @@
         "description": "Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Web",
+        "browserRequirements": "JavaScript required. WebGL required for the 3D preview.",
+        "isAccessibleForFree": true,
+        "sameAs": ["https://github.com/SafaElmali/duo-view"],
+        "featureList": [
+          "Interactive 3D folding model",
+          "Folded and open website previews in portrait and landscape",
+          "Side-by-side Duo layouts and phone comparison",
+          "Editable viewport dimensions in CSS pixels",
+          "Live website preview with snapshot fallback",
+          "Shareable previews with notes and highlights",
+          "PNG image export and embeddable previews",
+          "Responsive examples and an interactive streaming demo"
+        ],
+        "softwareHelp": {
+          "@type": "WebPageElement",
+          "@id": "https://duo-view.netlify.app/#faq",
+          "url": "https://duo-view.netlify.app/#faq",
+          "name": "Duo View preview help",
+          "isPartOf": { "@id": "https://duo-view.netlify.app/#webpage" }
+        },
         "image": "https://duo-view.netlify.app/assets/duo-view-social.png",
         "isPartOf": { "@id": "https://duo-view.netlify.app/#website" },
         "author": {
           "@type": "Person",
+          "@id": "https://duo-view.netlify.app/#author",
           "name": "Safa Elmali",
           "url": "https://x.com/SafaElmali",
           "sameAs": ["https://x.com/SafaElmali"]
@@ -132,43 +165,44 @@
 </dialog>
 </main>
 </div>
-<footer class="preview-help" aria-labelledby="faq-title">
+<footer class="preview-help" id="faq" aria-labelledby="faq-title">
   <div class="preview-help-inner">
     <div class="preview-help-intro">
       <p class="preview-help-eyebrow">Before you fold</p>
       <h2 id="faq-title">A little preview help.</h2>
+      <p class="preview-help-description">Duo View is a free, independent responsive website preview for designers and developers. Explore an illustrative foldable iPhone Duo in 3D, compare folded and open layouts, and share your preview. It runs in your browser with no account required.</p>
       <p class="preview-help-contact">Questions or feedback?<br><a href="https://x.com/SafaElmali" target="_blank" rel="noopener noreferrer">Reach out to @SafaElmali on X <span aria-hidden="true">↗</span></a></p>
     </div>
     <div class="preview-help-questions">
-      <details>
+      <details id="preview-website">
         <summary>How do I preview my website on iPhone Duo?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>Paste your website URL and select <strong>Preview on Duo</strong>, or choose a ready-made layout from <strong>Examples</strong>. Choose Folded or Open, switch between portrait and landscape, and adjust the hinge. <strong>Compare</strong> shows all four Duo layouts or a standard phone next to Duo.</p></div>
       </details>
-      <details>
+      <details id="snapshot-fallback">
         <summary>Why do some websites switch to a snapshot?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>Some websites block live embedding. Auto preview switches blocked or slow public pages to a scrollable image captured by Microlink at your selected display size. Snapshots use a fresh browser session, so they won’t include your sign-in. Local and private addresses stay in Live preview.</p></div>
       </details>
-      <details>
+      <details id="preview-interaction">
         <summary>Can I scroll and interact with the preview?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>Yes. While a public website is bent, choose <strong>Scroll preview</strong> to create a snapshot and scroll both halves together without changing the fold. To click links on an embeddable live website, choose <strong>Open flat</strong>; the phone flattens and enables interaction for you. Local pages use <strong>Use website</strong> to open flat directly. Snapshot links and media aren’t interactive. Try the Streaming demo for working playback controls.</p></div>
       </details>
-      <details>
+      <details id="share-preview-help">
         <summary>Can a shared link remember my website and orientation?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>Yes. Set up your website and orientation, then select <strong>Share → Copy link</strong>. The link remembers your website or example, display, orientation, hinge angle, viewport size, camera, and comparison settings. Use <strong>Add a note</strong> to describe and highlight an issue in 2D before sharing. Notes belong to that viewport; changing the page or its dimensions clears them. Each person gets a fresh preview; scrolling, video progress, and signed-in sessions aren’t included.</p></div>
       </details>
-      <details>
+      <details id="export-embed-help">
         <summary>Can I export or embed a preview?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>Choose <strong>Share → Export image</strong> for a PNG card in an open, folded, or tabletop frame. Public websites use a fresh capture, so the image may differ from your current session. Choose <strong>Share → Embed</strong> to copy an interactive preview into your website’s HTML. Visitors can fold, rotate, or open the full view.</p></div>
       </details>
-      <details>
+      <details id="mobile-support">
         <summary>Does Duo View work on mobile?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>Yes. On smaller screens, open <strong>Device settings</strong> to change the display, orientation, and hinge. Choose <strong>Rotate model</strong> and touch and drag to turn the phone. The 3D preview needs a browser with WebGL support; 2D preview is also available.</p></div>
       </details>
-      <details>
+      <details id="viewport-estimates">
         <summary>Where do the device dimensions come from?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>We use <a href="https://www.apple.com/iphone-duo/specs/" target="_blank" rel="noopener noreferrer">Apple’s published display resolutions</a>: 1398 × 2034 pixels outside and 1878 × 2670 inside. Dividing by an <strong>assumed 3× scale</strong> gives portrait presets of <strong>466 × 678</strong> and <strong>626 × 890 CSS pixels</strong>; landscape swaps width and height. The conversion is our assumption, and these sizes have not been validated in Safari on the device. Edit the viewport dimensions to test other sizes.</p></div>
       </details>
-      <details>
+      <details id="independent-simulator">
         <summary>Is Duo View an official Apple simulator?<span class="faq-icon" aria-hidden="true"></span></summary>
         <div class="faq-answer"><p>No. Duo View is an independent project and isn’t affiliated with Apple. The phone is an illustrative concept with estimated, editable viewport sizes. Websites render in your current browser, so this is a way to explore responsive layouts, not a replacement for testing on real hardware or in iOS Safari.</p></div>
       </details>

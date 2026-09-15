@@ -1,0 +1,29 @@
+# Duo View
+
+> Duo View is a free, independent responsive website preview for designers and developers. Explore an illustrative foldable iPhone Duo in 3D, compare folded and open layouts, and share your preview. It runs in your browser with no account required.
+
+Duo View is made by Safa Elmali. The canonical app is https://duo-view.netlify.app/ and its source is https://github.com/SafaElmali/duo-view.
+
+## Product and usage
+
+- [Duo View](https://duo-view.netlify.app/): The browser-based preview, with 3D folds, 2D view, portrait and landscape orientations, editable CSS viewport sizes, and side-by-side comparison.
+- [Preview a website](https://duo-view.netlify.app/#preview-website): Paste a URL or choose a built-in example, then select the display and orientation.
+- [Live preview and snapshot fallback](https://duo-view.netlify.app/#snapshot-fallback): Public websites that block embedding or load too slowly can fall back to a scrollable Microlink snapshot.
+- [Scroll and interact](https://duo-view.netlify.app/#preview-interaction): Scroll snapshots across both halves, or open the model flat to interact with an embeddable website. The streaming demo has working playback controls.
+- [Share a preview](https://duo-view.netlify.app/#share-preview-help): Share the source and view settings in a URL, with optional notes and highlights. Each recipient loads a fresh preview.
+- [Export or embed](https://duo-view.netlify.app/#export-embed-help): Export a PNG preview card or copy iframe code for an interactive embed.
+- [Mobile support](https://duo-view.netlify.app/#mobile-support): Device settings and touch controls are available on smaller screens. The 3D view requires WebGL.
+
+## Accuracy and limitations
+
+- [Viewport estimates](https://duo-view.netlify.app/#viewport-estimates): Presets are editable CSS estimates based on display resolutions and an assumed scale. They have not been validated as Safari viewport sizes on real hardware.
+- [Independent simulator](https://duo-view.netlify.app/#independent-simulator): Duo View is not affiliated with Apple. Its phone model is illustrative. Websites render in the current browser; it does not emulate iOS Safari or replace real-device testing.
+
+Live websites must permit iframe embedding. Snapshot capture sends the public URL and selected viewport size to Microlink and uses a fresh browser session. Snapshots cannot click links, play media, or reproduce signed-in sessions. Local and private URLs are not sent for capture. Shared links do not include scroll position, video progress, or signed-in sessions.
+
+The bundled storefront, newsletter, dashboard, and portfolio are fictional demonstration pages, not separate businesses or products.
+
+## Project
+
+- [Source and documentation](https://github.com/SafaElmali/duo-view): Setup, implementation, supported features, and limitations.
+- [Author](https://x.com/SafaElmali): Safa Elmali, the creator of Duo View.

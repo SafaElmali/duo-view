@@ -34,6 +34,10 @@ Run `node scripts/serve.mjs` and open http://127.0.0.1:4317. This dependency-fre
 
 Connect this repository to Netlify. The included `netlify.toml` runs the tests and publishes `dist`; no environment variables or API keys are required. Changes pushed to `main` deploy automatically once the repository is connected. The `embed-check` Netlify Function checks public pages for embedding restrictions; no third-party credentials are required.
 
+## Search and AI discovery
+
+The app includes SEO metadata, social cards, linked structured data, a canonical sitemap, and crawlable product information and FAQs. An optional `llms.txt` guide describes the same features and limitations for AI tools; fictional demo pages stay out of search results. See [SEO and AI search discovery](docs/seo-geo.md) for maintenance and verification.
+
 ## Accuracy and limitations
 
 - Presets use [Apple’s published display resolutions](https://www.apple.com/iphone-duo/specs/) with an **assumed 3× scale**: outer 1398 × 2034 ÷ 3 = **466 × 678 CSS pixels**; inner 1878 × 2670 ÷ 3 = **626 × 890 CSS pixels** in portrait. Landscape swaps width and height. The source resolutions are published specifications; the 3× conversion is our assumption. These editable estimates have not been validated as Safari viewport sizes on the device. Browser chrome and safe areas can change the usable viewport.

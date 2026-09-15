@@ -34,6 +34,14 @@
   font-size: 14px;
   line-height: 1.8;
 }
+.preview-help-description {
+  max-width: 48ch;
+  margin: 0 0 24px;
+  color: #aeb8c6;
+  font-size: 14px;
+  line-height: 1.85;
+}
+.preview-help details:target { scroll-margin-top: 24px; }
 .preview-help a {
   color: #b8cdf3;
   text-decoration: underline;
