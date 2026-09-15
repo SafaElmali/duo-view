@@ -1,8 +1,10 @@
 import {normalizeUrl,validDimension} from './simulator.mjs';
 import {validateSnapshotUrl} from './snapshot.mjs';
+import {matchExampleUrl,resolveExampleUrl} from './example-gallery.mjs';
+import {validateAnnotation} from './preview-annotations.mjs';
 
-export const DEFAULT_PREVIEW=Object.freeze({display:'open',orientation:'portrait',view:'three',chrome:false,hinge:false,zoom:'fit',custom:null,mode:'embedded',foldAngle:100,finish:'night',pose:'tabletop',content:'player'});
-const choices={display:['open','folded'],orientation:['portrait','landscape'],view:['three','single','compare'],zoom:['fit','0.5','0.75','1'],mode:['embedded','snapshot'],finish:['night','white'],pose:['tabletop','book','flat'],content:['player','website']};
+export const DEFAULT_PREVIEW=Object.freeze({display:'open',orientation:'portrait',view:'three',chrome:false,hinge:false,zoom:'fit',custom:null,mode:'embedded',foldAngle:100,finish:'night',pose:'tabletop',content:'player',comparison:'poses',reference:'standard',annotation:null});
+const choices={display:['open','folded'],orientation:['portrait','landscape'],view:['three','single','compare'],zoom:['fit','0.5','0.75','1'],mode:['embedded','snapshot'],finish:['night','white'],pose:['tabletop','book','flat'],content:['player','website'],comparison:['poses','phone'],reference:['compact','standard','large']};
 const MAX_LINK_LENGTH=16000;
 const invalid=()=>new Error('This preview link is incomplete or invalid. Ask the sender for a new link.');
 
@@ -45,10 +47,25 @@ export function readPreviewLink(hash,{base,demoUrl}){
   if(!validDimension(width)||!validDimension(height))throw invalid();state.custom={width,height};
  }
  if(params.has('url')){
+  if(params.has('example'))throw invalid();
   state.url=publicWebsite(params.get('url'),base,state.mode);
   if(!params.has('content'))state.content='website';
  }
+ if(params.has('example')){
+  const url=resolveExampleUrl(params.get('example'),base);if(!url)throw invalid();
+  state.url=url;state.content='website';state.mode='embedded';
+ }
  if(state.view!=='three')state.content='website';
+ if(params.has('note')||params.has('region')){
+  const annotation={note:params.get('note')??''};
+  if(params.has('region')){
+   const values=params.get('region').split(',');
+   if(values.length!==4||values.some(value=>!value.trim()||!Number.isFinite(Number(value))))throw invalid();
+   const [x,y,width,height]=values.map(Number);annotation.rect={x,y,width,height};
+  }
+  try{state.annotation=validateAnnotation(annotation);}catch{throw invalid();}
+  if(!state.annotation||state.view!=='single'||state.content!=='website')throw invalid();
+ }
  let camera=null;
  if(params.has('camera')){
   const values=params.get('camera').split(',');
@@ -62,11 +79,20 @@ export function readPreviewLink(hash,{base,demoUrl}){
 
 export function createPreviewLink(state,{href,demoUrl,camera=null}){
  const base=shareBase(href),params=new URLSearchParams({duo:'1'});
- if(state.content==='website'&&state.url!==demoUrl)params.set('url',publicWebsite(state.url,base,state.mode));
- for(const key of Object.keys(choices))if(state[key]!==DEFAULT_PREVIEW[key])params.set(key,state[key]);
+ const example=state.content==='website'&&matchExampleUrl(state.url,href);
+ if(example)params.set('example',example.id);
+ else if(state.content==='website'&&state.url!==demoUrl)params.set('url',publicWebsite(state.url,base,state.mode));
+ for(const key of Object.keys(choices))if(state[key]!==undefined&&state[key]!==DEFAULT_PREVIEW[key])params.set(key,state[key]);
  for(const key of ['chrome','hinge'])if(state[key])params.set(key,'1');
  if(state.foldAngle!==DEFAULT_PREVIEW.foldAngle)params.set('angle',String(state.foldAngle));
  if(state.custom){params.set('width',state.custom.width);params.set('height',state.custom.height);}
+ if(state.annotation){
+  const annotation=validateAnnotation(state.annotation);
+  if(annotation){
+   if(annotation.note)params.set('note',annotation.note);
+   if(annotation.rect)params.set('region',['x','y','width','height'].map(key=>annotation.rect[key]).join(','));
+  }
+ }
  if(state.view==='three'&&camera){
   const angle=value=>Number(Math.atan2(Math.sin(value),Math.cos(value)).toFixed(5));
   params.set('camera',[angle(camera.yaw),angle(camera.pitch),Number(camera.zoom.toFixed(5))].join(','));

@@ -1,12 +1,17 @@
 import {bindMobileControls} from './mobile-controls.mjs';
 import {initAnalytics,bindAnalyticsControls,track} from './analytics.mjs';
 import {createDuoViewer} from './duo-3d.mjs';
-import {dimensions,validDimension,normalizeUrl,fitScale} from './simulator.mjs';
+import {dimensions,validDimension,normalizeUrl,fitScale,isBuiltInWebsite} from './simulator.mjs';
 import {captureSnapshot,snapshotDocument,validateSnapshotUrl} from './snapshot.mjs';
 import {createEmbedFallback} from './embed-fallback.mjs';
 import {bindPreviewModePicker} from './preview-mode-picker.mjs';
 import {DEFAULT_PREVIEW,createPreviewLink,readPreviewLink,bindPreviewSharing} from './share-preview.mjs';
 import {navigatePreviewFrame} from './preview-frame.mjs';
+import {bindExampleGallery,matchExampleUrl,resolveExampleUrl} from './example-gallery.mjs';
+import {bindPreviewAnnotations} from './preview-annotations.mjs';
+import {bindPreviewExport,captureLocalPage,capturePlayerPreview} from './export-preview.mjs';
+import {comparisonDevices,bindPhoneComparison} from './phone-comparison.mjs';
+import {bindPreviewEmbedding,initEmbeddedPreview} from './embed-preview.mjs';
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const demoUrl=new URL('demo.html',location.href).href;
@@ -16,9 +21,13 @@ let modePicker=null;
 let modelFailed=false;
 const frame=$('#site-frame');
 let comparisonFrames=[];
+let comparisonSignature='',comparisonController=null;
 let resizeFrame=0;
+let annotationController=null,annotationContext=null;
+let embeddedController=null;
 const title=(display,orientation)=>`${display==='folded'?'Folded':'Open'} · ${orientation==='portrait'?'Portrait':'Landscape'}`;
-const isDemo=()=>state.url===demoUrl;
+const isDemo=()=>isBuiltInWebsite(state.url,location.href);
+const sourceName=()=>state.content==='player'?'Streaming demo':matchExampleUrl(state.url,location.href)?.title??(isDemo()?'Demo website':new URL(state.url).hostname);
 const isSnapshot=()=>state.mode==='snapshot'&&!isDemo()&&state.content==='website';
 const captures=new Map();
 let automaticSnapshotUrl=null,automaticSnapshotReason=null;
@@ -52,7 +61,7 @@ function setFrameSource(iframe,size){
 }
 function syncFrameSources(){
  if(state.view!=='compare')setFrameSource(frame,dimensions(state.display,state.orientation,state.chrome,state.custom));
- if(state.view==='compare')for(const item of comparisonFrames)setFrameSource(item.iframe,dimensions(item.display,item.orientation,state.chrome));
+ if(state.view==='compare')for(const item of comparisonFrames)setFrameSource(item.iframe,item.size);
 }
 function renderPreviewMode(){
  $('#preview-mode').value=state.mode;modePicker?.sync();
@@ -69,6 +78,7 @@ function renderPreviewMode(){
 }
 function changeMode(mode){
  if(!['embedded','snapshot'].includes(mode))throw new Error('Choose Live preview or Snapshot.');
+ if(mode==='snapshot'&&isDemo()&&state.content==='website')throw new Error('Examples run in Live preview. Enter a public website to create a snapshot.');
  if(state.content==='website'&&!isDemo()){
   if(mode==='snapshot')validateSnapshotUrl(state.url);
   else normalizeUrl(state.url,location.href,{embedded:true});
@@ -84,11 +94,16 @@ function selected(attribute,value){$$(`[${attribute}]`).forEach(button=>{const a
 function update(){
   selected('data-display',state.display);selected('data-orientation',state.orientation);selected('data-view',state.view);
   const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
+  const nextAnnotationContext=JSON.stringify([state.url,state.content,state.display,state.orientation,state.chrome,size.width,size.height]);
+  if((annotationContext!==null&&annotationContext!==nextAnnotationContext)||state.view!=='single'){
+   state.annotation=null;annotationController?.cancel({focus:false});
+  }
+  annotationContext=nextAnnotationContext;
   $('#viewport-width').value=size.width;$('#viewport-height').value=size.height;
   $('#view-title').textContent=title(state.display,state.orientation);
   $('#view-subtitle').textContent=`${size.width} × ${size.contentHeight} CSS px${state.custom?' · custom':''}`;
   $('#footer-state').textContent=`${state.display==='folded'?'Outer':'Inner'} display · ${state.orientation==='portrait'?'Portrait':'Landscape'}`;
-  $('#viewport-readout').textContent=state.view==='compare'?'Four preset viewports':`Viewport: ${size.width} × ${size.contentHeight} CSS px`;
+  $('#viewport-readout').textContent=state.view==='compare'?(state.comparison==='phone'?'Phone and Duo viewports':'Four preset viewports'):`Viewport: ${size.width} × ${size.contentHeight} CSS px`;
   $('#duo-three-scene').hidden=state.view!=='three';
   $('#model-controls').hidden=state.view!=='three';
   $('#duo-state-label').textContent=`${state.pose==='tabletop'?'Tabletop':state.pose==='book'?'Book':title(state.display,state.orientation)} · ${Math.round(state.foldAngle)}°`;
@@ -96,17 +111,26 @@ function update(){
   selected('data-finish',state.finish);
   $$('[data-player-demo]').forEach(button=>button.setAttribute('aria-pressed',String(state.content==='player')));
   $('#demo').setAttribute('aria-pressed',String(state.content==='website'));
-  $('#preview-status').textContent=state.content==='player'?'Sintel · Interactive demo':isDemo()?'Demo website':new URL(state.url).hostname;
+  $('#preview-status').textContent=sourceName();
   $('#duo-render-host').classList.toggle('tabletop-pose',state.pose==='tabletop');
   $('#fold-angle').value=String(state.foldAngle);
   $('#fold-angle-output').value=`${Math.round(state.foldAngle)}°`;
   $('#single-scene').hidden=state.view!=='single';$('#comparison').hidden=state.view!=='compare';
   $('#chrome-toggle').checked=state.chrome;$('#hinge-toggle').checked=state.hinge;
   $('#hinge-toggle').disabled=state.display==='folded'&&state.view==='single';
-  if(state.view==='compare'&&!comparisonFrames.length)buildComparison();
+  if(state.view==='compare'){
+   const devices=comparisonDevices(state),signature=JSON.stringify(devices);
+   if(signature!==comparisonSignature){buildComparison(devices);comparisonSignature=signature;}
+  }
+  $('#comparison').classList.toggle('comparison--phone',state.comparison==='phone');
+  comparisonController?.update();
+  $('#annotate-preview').disabled=state.content!=='website';
+  $('#annotate-preview').title=state.content==='website'?'':'Choose a website or example to add a layout note.';
   syncFrameSources();
   renderPreviewMode();
   updateModel();
+  annotationController?.update();
+  embeddedController?.update();
   requestFit();
   embedFallback.update(state.url,state.content==='website'&&!isDemo()&&state.mode==='embedded');
 }
@@ -115,7 +139,7 @@ function configureDevice(device,size,display,orientation){
   const iframe=device.querySelector('iframe');iframe.width=String(size.width);iframe.height=String(size.contentHeight);iframe.style.width=`${size.width}px`;iframe.style.height=`${size.contentHeight}px`;
   device.querySelectorAll('.browser-chrome,.browser-bottom').forEach(element=>element.hidden=!state.chrome);
   const hinge=device.querySelector('.hinge');hinge.hidden=display==='folded'||!state.hinge;hinge.classList.toggle('horizontal',orientation==='portrait');
-  const host=device.querySelector('.browser-address>span:nth-child(2)');if(host)host.textContent=isDemo()?'Demo website':new URL(state.url).host;
+  const host=device.querySelector('.browser-address>span:nth-child(2)');if(host)host.textContent=isDemo()?sourceName():new URL(state.url).host;
 }
 function requestFit(){if(!resizeFrame)resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;fit();});}
 function fit(){
@@ -124,43 +148,54 @@ function fit(){
   if(state.view==='single'){
     const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
     const availableWidth=Math.max(260,stage.clientWidth-(innerWidth<700?28:70));
-    const availableHeight=Math.max(160,stage.clientHeight-145);
+    const notePanel=$('#single-scene .preview-annotation-panel:not([hidden])');
+    const noteHeight=notePanel?notePanel.offsetHeight+22:0;
+    const availableHeight=Math.max(160,stage.clientHeight-145-noteHeight);
     const scale=fitScale(size,availableWidth,availableHeight,state.zoom);
     const device=$('#device');configureDevice(device,size,state.display,state.orientation);
     device.style.transform=`scale(${scale})`;
     $('#device-space').style.width=`${size.outerWidth*scale}px`;$('#device-space').style.height=`${size.outerHeight*scale}px`;
+    annotationController?.update();
   }else{
+    const phoneMode=state.comparison==='phone';
+    const availableHeight=innerWidth<700?470:Math.max(160,phoneMode?stage.clientHeight-155:(stage.clientHeight-145)/2);
+    const commonScale=phoneMode?Math.min(...comparisonFrames.map(item=>fitScale(item.size,item.card.clientWidth-30,availableHeight,state.zoom))):null;
     for(const item of comparisonFrames){
-      const size=dimensions(item.display,item.orientation,state.chrome);
-      const scale=fitScale(size,item.card.clientWidth-30,innerWidth<700?470:Math.max(280,(stage.clientHeight-145)/2),state.zoom);
+      const size=item.size;
+      const scale=commonScale??fitScale(size,item.card.clientWidth-30,availableHeight,state.zoom);
       configureDevice(item.device,size,item.display,item.orientation);
       item.device.style.transform=`scale(${scale})`;item.space.style.width=`${size.outerWidth*scale}px`;item.space.style.height=`${size.outerHeight*scale}px`;
       item.subtitle.textContent=`${size.width} × ${size.contentHeight} CSS px`;
     }
   }
 }
-function buildComparison(){
-  for(const display of ['folded','open'])for(const orientation of ['portrait','landscape']){
+function buildComparison(devices){
+  for(const item of comparisonFrames)navigatePreviewFrame(item.iframe,{url:'about:blank'});
+  comparisonFrames=[];$('#comparison').replaceChildren();
+  for(const descriptor of devices){
+    const {display,orientation,size,label,reference}=descriptor;
     const card=document.createElement('section');card.className='compare-card';
+    card.classList.toggle('compare-card--reference',reference);
     const heading=document.createElement('div');heading.className='view-title';
-    const name=document.createElement('h2');name.textContent=title(display,orientation);const subtitle=document.createElement('p');heading.append(name,subtitle);
+    const name=document.createElement('h2');name.textContent=label;const subtitle=document.createElement('p');heading.append(name,subtitle);
     const space=document.createElement('div');space.className='device-space';
     const device=$('#device').cloneNode(true);device.removeAttribute('id');device.querySelectorAll('[id]').forEach(element=>element.removeAttribute('id'));
-    const iframe=device.querySelector('iframe');iframe.title=`Your website: ${title(display,orientation)}`;setFrameSource(iframe,dimensions(display,orientation,state.chrome));
+    device.querySelectorAll('.preview-annotation-layer').forEach(element=>element.remove());
+    const iframe=device.querySelector('iframe');iframe.title=`Your website: ${label}`;setFrameSource(iframe,size);
     space.append(device);card.append(heading,space);$('#comparison').append(card);
-    comparisonFrames.push({display,orientation,card,device,space,iframe,subtitle});
+    comparisonFrames.push({...descriptor,card,device,space,iframe,subtitle});
   }
 }
 function changeDisplay(display){state.pose='flat';if(!['folded','open'].includes(display))throw new Error('Choose folded or open.');state.display=display;state.foldAngle=display==='folded'?0:180;state.custom=null;clearDimensionError();update();}
 function changeOrientation(orientation){if(!['portrait','landscape'].includes(orientation))throw new Error('Choose portrait or landscape.');state.orientation=orientation;state.custom=null;clearDimensionError();update();}
 function changeView(view){if(view!=='three')state.content='website';if(!['three','single','compare'].includes(view))throw new Error('Choose 3D model, 2D preview, or compare.');state.view=view;update();}
 function loadWebsite(url){
-  const mode=automaticSnapshotUrl?'embedded':state.mode;
-  if(mode==='snapshot'&&url!==demoUrl)validateSnapshotUrl(url);
+  const mode=isBuiltInWebsite(url,location.href)||automaticSnapshotUrl?'embedded':state.mode;
+  if(mode==='snapshot'&&!isBuiltInWebsite(url,location.href))validateSnapshotUrl(url);
   if(mode==='embedded')normalizeUrl(url,location.href,{embedded:true});
   automaticSnapshotUrl=null;state.mode=mode;
   state.content='website';state.url=url;track('duo_preview_requested');
-  $('#preview-status').textContent=isDemo()?'Demo website':new URL(url).hostname;
+  $('#preview-status').textContent=sourceName();
   $('#site-url').value=isDemo()?'':url;$('#url-error').hidden=true;update();
 }
 function urlError(message){track('duo_preview_validation_failed');$('#url-error').textContent=message;$('#url-error').hidden=false;$('#site-url').setAttribute('aria-invalid','true');}
@@ -184,7 +219,9 @@ function clearDimensionError(){$('#dimension-error').hidden=true;$('#viewport-wi
 for(const selector of ['#viewport-width','#viewport-height'])$(selector).addEventListener('change',()=>{
   const width=Number($('#viewport-width').value),height=Number($('#viewport-height').value);
   if(!validDimension(width)||!validDimension(height)){$('#dimension-error').textContent='Use whole numbers from 240 to 1600.';$('#dimension-error').hidden=false;$(selector).setAttribute('aria-invalid','true');return;}
-  clearDimensionError();state.custom={width,height};state.view='single';update();
+  clearDimensionError();state.custom={width,height};
+  if(state.view!=='compare'||state.comparison!=='phone')state.view='single';
+  update();
 });
 $('#reset-dimensions').addEventListener('click',()=>{state.custom=null;clearDimensionError();update();});
 function showInfo(){$('#info-dialog').showModal();}
@@ -252,21 +289,42 @@ function analyticsContext(){return {display:state.display,orientation:state.orie
 initAnalytics(analyticsContext);
 bindAnalyticsControls(document);
 bindMobileControls();
-bindPreviewSharing({
- getPreview(){
-  const source=state.content==='player'?'Streaming demo':isDemo()?'Demo website':new URL(state.url).hostname;
-  const layout=state.view==='three'?`${state.pose==='tabletop'?'Tabletop':state.pose==='book'?'Book':state.display==='folded'?'Folded':'Flat'} · ${Math.round(state.foldAngle)}°`:state.view==='single'?'2D preview':'Compare all';
-  const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
-  const viewport=state.view==='compare'?'Four preset viewports':`${size.width} × ${size.contentHeight} CSS px`;
-  return {url:createPreviewLink(state,{href:location.href,demoUrl,camera:modelViewer?.getCamera()}),summary:`${source} · ${layout} · ${state.orientation==='portrait'?'Portrait':'Landscape'} · ${viewport}`};
- },onEvent:track
+comparisonController=bindPhoneComparison({host:$('#comparison-options'),getState:()=>state,onChange:patch=>{Object.assign(state,patch);update();track('duo_comparison_changed');}});
+for(const id of ['export-preview','annotate-preview','embed-preview'])$('#'+id).addEventListener('click',()=>$('#share-dialog').close());
+bindExampleGallery({trigger:$('#example-gallery'),onSelect:example=>{
+ Object.assign(state,{mode:'embedded',content:'website',view:'three',display:'open',orientation:'landscape',pose:'flat',foldAngle:180,custom:null,annotation:null});
+ clearDimensionError();
+ loadWebsite(resolveExampleUrl(example.id,location.href));modelViewer?.reset();modelViewer?.useWebsite();track('duo_example_opened');
+}});
+annotationController=bindPreviewAnnotations({
+ trigger:$('#annotate-preview'),returnFocus:$('#share-preview'),container:$('#single-scene'),getFrame:()=>frame,getState:()=>state,
+ onChange:annotation=>{state.annotation=annotation;update();track('duo_annotation_changed',{enabled:Boolean(annotation)});},
+ onRequestPreview:()=>{state.view='single';state.content='website';update();}
 });
+bindPreviewExport({trigger:$('#export-preview'),getState:()=>({...state}),onEvent:track,
+ getExistingCapture:({state:preview,size})=>captures.get(`${preview.url}|${size.width}|${size.contentHeight}`),
+ getLocalCapture:({state:preview,size,signal})=>{
+  if(preview.content==='player')return capturePlayerPreview({root:$('#duo-render-host'),size,orientation:preview.orientation,signal});
+  if(isBuiltInWebsite(preview.url,location.href))return captureLocalPage(preview.url,{size,signal});
+  return null;
+ }
+});
+function getPreview(){
+  const source=sourceName();
+  const layout=state.view==='three'?`${state.pose==='tabletop'?'Tabletop':state.pose==='book'?'Book':state.display==='folded'?'Folded':'Flat'} · ${Math.round(state.foldAngle)}°`:state.view==='single'?'2D preview':state.comparison==='phone'?'Phone vs Duo':'All Duo views';
+  const size=dimensions(state.display,state.orientation,state.chrome,state.custom);
+  const viewport=state.view==='compare'?(state.comparison==='phone'?comparisonDevices(state).map(item=>`${item.size.width} × ${item.size.contentHeight}`).join(' / ')+' CSS px':'Four preset viewports'):`${size.width} × ${size.contentHeight} CSS px`;
+  return {url:createPreviewLink(state,{href:location.href,demoUrl,camera:modelViewer?.getCamera()}),summary:`${source} · ${layout} · ${state.orientation==='portrait'?'Portrait':'Landscape'} · ${viewport}${state.annotation?' · Includes a layout note':''}`};
+}
+bindPreviewSharing({getPreview,onEvent:track});
+bindPreviewEmbedding({getPreview,onEvent:track});
 function restoreSharedPreview(){
  let shared;
  try{shared=readPreviewLink(location.hash,{base:location.href,demoUrl});}
  catch(error){urlError(error.message);return false;}
  if(!shared)return false;
  automaticSnapshotUrl=null;automaticSnapshotReason=null;
+ annotationContext=null;
  // Older links may include the retired toolbar zoom; all page previews now fit automatically.
  Object.assign(state,shared.state,{zoom:'fit'});
  $('#site-url').value=isDemo()?'':state.url;
@@ -277,6 +335,9 @@ function restoreSharedPreview(){
 }
 window.addEventListener('hashchange',restoreSharedPreview);
 if(!restoreSharedPreview())update();
+embeddedController=initEmbeddedPreview({getPreview,getState:()=>state,onEvent:track,onConfigure:patch=>{
+ Object.assign(state,patch,{custom:null});clearDimensionError();update();modelViewer?.reset();
+}});
 
 // Optional imperative tools share the same validated state transitions as the controls.
 if(document.modelContext?.registerTool){
@@ -292,8 +353,8 @@ if(document.modelContext?.registerTool){
     if(input.content!==undefined&&!['website','player'].includes(input.content))throw new Error('Unknown screen content.');
     const mode=input.mode??(input.url!==undefined&&automaticSnapshotUrl?'embedded':state.mode);if(!['embedded','snapshot'].includes(mode))throw new Error('Unknown preview mode.');
     const url=input.url!==undefined?normalizeUrl(input.url,location.href,{embedded:mode==='embedded'}):null;
-    if(mode==='snapshot'&&(url||state.url)!==demoUrl)validateSnapshotUrl(url||state.url);
-    if(mode==='embedded'&&(url||state.url)!==demoUrl)normalizeUrl(url||state.url,location.href,{embedded:true});
+    if(mode==='snapshot'&&!isBuiltInWebsite(url||state.url,location.href))validateSnapshotUrl(url||state.url);
+    if(mode==='embedded'&&!isBuiltInWebsite(url||state.url,location.href))normalizeUrl(url||state.url,location.href,{embedded:true});
     if(input.mode!==undefined||input.url!==undefined)automaticSnapshotUrl=null;state.mode=mode;
     if(input.pose){state.pose=input.pose;state.display='open';state.orientation=input.pose==='tabletop'?'portrait':'landscape';state.foldAngle=input.pose==='flat'?180:input.pose==='tabletop'?100:115;}
     if(input.content)state.content=input.content;if(input.pose||input.content==='player')state.view='three';

@@ -1,0 +1,16 @@
+.phone-comparison-controls{flex:none;padding:14px 25px 12px;background:#fafbfc;border-bottom:1px solid #e7e9ee;color:#505c70}
+.phone-comparison-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.phone-comparison-modes{display:flex;gap:3px;padding:3px;border:1px solid #e5e9f0;background:#f0f3f7;border-radius:8px}
+.phone-comparison-mode{min-height:36px;padding:7px 12px;border:0;border-radius:5px;background:transparent;color:#6b778a;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.phone-comparison-mode.active{color:#294eaa;background:#fff;box-shadow:0 1px 4px #283b6312}
+.phone-comparison-mode:hover{color:#294eaa}
+.phone-comparison-reference{display:flex;align-items:center;gap:9px;color:#728097;font-size:11px}
+.phone-comparison-reference select{min-height:38px;max-width:100%;border:1px solid #dce3ed;border-radius:6px;padding:7px 10px;background:#fff;color:#53627a;font:inherit;font-variant-numeric:tabular-nums}
+.phone-comparison-note{font-size:11px;line-height:1.6;color:#7c8798;margin:9px 0 0}
+.phone-comparison-mode:focus-visible,.phone-comparison-reference select:focus-visible{outline:3px solid #3163ed;outline-offset:3px}
+.comparison.comparison--phone{align-content:start;grid-template-columns:repeat(2,minmax(0,1fr))}
+.comparison--phone .compare-card{min-height:100%}
+.comparison--phone .compare-card--reference{background:#f7f9fc;border-color:#dbe3ef}
+.comparison--phone .compare-card--reference .view-title h2{color:#6b7890}
+@media(max-width:1000px){.phone-comparison-controls{padding:12px 15px}.phone-comparison-row{gap:10px}.phone-comparison-reference{flex-wrap:wrap;gap:6px}}
+@media(max-width:700px){.phone-comparison-controls{padding:12px 14px}.phone-comparison-row{align-items:stretch}.phone-comparison-modes{width:100%}.phone-comparison-mode{flex:1;min-height:40px}.phone-comparison-reference{width:100%;justify-content:space-between}.phone-comparison-reference select{min-height:40px;flex:1;max-width:240px}.phone-comparison-note{font-size:10px}.comparison.comparison--phone{grid-template-columns:1fr}}

@@ -14,6 +14,14 @@ https://github.com/user-attachments/assets/7a50e3c2-9c0e-4907-828e-6bdec2d0fb83
 
 On phones and small tablets, the preview comes first; Device settings opens the same controls in a bottom panel.
 
+Try **Examples** for four original responsive pages: a storefront, newsletter, dashboard, and portfolio. They run locally with no external assets or accounts. **Compare → Phone vs Duo** loads the same page in a generic compact, standard, or large phone viewport beside the selected Duo viewport, at the same visual scale. Each page scrolls independently; the reference dimensions are illustrative CSS sizes.
+
+The **Share** menu also includes three tools:
+
+- **Add a note** opens the 2D website preview. Add plain text and optionally drag a highlight, or enter its position as percentages. The note and region travel in the shared link with the viewport. Changing the source, dimensions, orientation, browser chrome, or leaving 2D clears the note. Highlights refer to the visible viewport, not a page element or saved scroll position.
+- **Export image** creates a 1600 × 1200 PNG card with an open, folded, or tabletop frame and optional Duo View credit. Built-in pages and the player use actual local content; public websites reuse a matching snapshot or request a fresh Microlink capture. It exports the top viewport, not the current scroll position or camera angle. Browser image access restrictions, provider limits, or unsupported local rasterization can prevent export and show an error.
+- **Embed** provides responsive iframe code with a selectable height. The compact embedded view retains the shared layout and offers Fold, Rotate, and Open in Duo View controls. All-poses comparison already shows each fold, so its Fold control is disabled. Embeds use the same fresh-preview and website embedding restrictions as shared links. The dialog loads its preview only when requested.
+
 Use **Share** in the preview toolbar, then **Copy link**, to send someone the current website or streaming demo. Links restore the layout, display, orientation, hinge angle, finish, browser chrome, hinge guide, custom viewport, and 3D camera (including its zoom). They load a fresh preview: live pages run the usual embedding check and snapshot links request a new capture. Scroll position, player progress, and signed-in sessions are not shared. The versioned URL fragment holds the settings without a link database. Local/file builds generate links to the public Netlify app, which must have this feature deployed; other hosted builds retain their own URL. Local/private websites and URLs containing obvious access parameters cannot be shared. Invalid links show an error and leave the current preview intact.
 
 Explore an animated 3D folding model, scroll full-page website snapshots across both halves, or try the streaming player with working playback controls. In streaming mode, touch-and-drag or click-and-drag on the video rotates the phone while the controls stay active.

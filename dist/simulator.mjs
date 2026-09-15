@@ -1,4 +1,9 @@
+import {matchExampleUrl} from './example-gallery.mjs';
+
 export const PRESETS = Object.freeze({folded:{width:466,height:678},open:{width:626,height:890}});
+export function isBuiltInWebsite(raw,base){
+  try{return new URL(raw).href===new URL('demo.html',base).href||Boolean(matchExampleUrl(raw,base));}catch{return false;}
+}
 export function dimensions(display,orientation,chrome=false,custom=null){
   if(!Object.hasOwn(PRESETS,display)||!['portrait','landscape'].includes(orientation))throw new Error('Invalid device configuration.');
   let {width,height}=PRESETS[display];
@@ -14,7 +19,7 @@ export function normalizeUrl(raw,base,{embedded=true}={}){
   if(!['http:','https:'].includes(url.protocol))throw new Error('Use an http:// or https:// website URL.');
   if(url.username||url.password)throw new Error('Use a URL without an embedded username or password.');
   if(embedded&&base&&new URL(base).protocol==='https:'&&url.protocol==='http:')throw new Error('Use an HTTPS URL. This hosted preview cannot embed an HTTP page.');
-  if(base&&url.origin===new URL(base).origin&&!url.pathname.endsWith('/demo.html'))throw new Error('Choose the website you want to test, not Duo View itself.');
+  if(base&&url.origin===new URL(base).origin&&!isBuiltInWebsite(url.href,base))throw new Error('Choose the website you want to test, not Duo View itself.');
   return url.href;
 }
 export function fitScale(size,availableWidth,availableHeight,zoom='fit'){
