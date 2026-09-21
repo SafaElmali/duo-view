@@ -1,3 +1,4 @@
+import {siteBase} from './routes.mjs';
 export const EXAMPLES = Object.freeze([
  Object.freeze({id:'storefront',path:'./examples/storefront.html',title:'Quiet Objects',category:'Storefront',description:'A considered collection of everyday objects. Watch the product grid adapt.'}),
  Object.freeze({id:'newsletter',path:'./examples/newsletter.html',title:'The Margin',category:'Newsletter',description:'A weekly letter for curious people, with stories that find their own rhythm.'}),
@@ -12,7 +13,7 @@ export function resolveExampleUrl(id,baseUrl){
  try{
   const base=new URL(baseUrl);
   if(!['https:','http:','file:'].includes(base.protocol)||base.username||base.password)return null;
-  return new URL(example.path,base).href;
+  return new URL(example.path,siteBase(base.href)).href;
  }catch{return null;}
 }
 

@@ -42,8 +42,8 @@ test('camera bearing and zoom survive multiple manual revolutions without huge l
 });
 
 test('local and file builds share the production site; hosted previews retain their origin and path',()=>{
- for(const local of ['http://127.0.0.1:4317/','http://localhost:4317/?a=1#old','file:///tmp/duo/dist/index.html'])assert.equal(shareBase(local),href);
- assert.equal(shareBase('https://preview.example/duo/?token=123#old'),'https://preview.example/duo/');
+ for(const local of ['http://127.0.0.1:4317/','http://localhost:4317/?a=1#old','file:///tmp/duo/dist/index.html'])assert.equal(shareBase(local),href+'studio/');
+ assert.equal(shareBase('https://preview.example/duo/?token=123#old'),'https://preview.example/duo/studio/');
  const localDemo='http://127.0.0.1:4317/demo.html';
  assert.equal(new URL(createPreviewLink(state({url:localDemo}),{href:'http://127.0.0.1:4317/',demoUrl:localDemo})).origin,new URL(href).origin);
 });

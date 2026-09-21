@@ -1,15 +1,17 @@
 <!doctype html>
-<html lang="en" data-layout="focus">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Duo View — Foldable Website Preview &amp; iPhone Duo Simulator</title>
-  <meta name="description" content="Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Duo View — Your website, in every fold.</title>
+  <meta name="description" content="A new perspective on responsive design. Explore your website on a foldable iPhone Duo concept with an interactive 3D preview.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/manrope-variable.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/landing/landing.css"><script type="module" src="/landing/landing.mjs"></script>
   <meta name="author" content="Safa Elmali">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta name="theme-color" content="#f5f6f8">
   <link rel="canonical" href="https://duo-view.netlify.app/">
-  <link rel="alternate" type="text/plain" href="llms.txt" title="Duo View product guide for AI tools">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="Duo View product guide for AI tools">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Duo View">
   <meta property="og:locale" content="en_US">
@@ -27,193 +29,125 @@
   <meta name="twitter:description" content="See your website on a foldable iPhone Duo concept. Fold it, rotate it, compare layouts, and share the preview.">
   <meta name="twitter:image" content="https://duo-view.netlify.app/assets/duo-view-social.png">
   <meta name="twitter:image:alt" content="Duo View foldable phone preview with the words Your website, in every fold.">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="viewer.css">
-  <link rel="stylesheet" href="duo-3d.css">
-  <link rel="stylesheet" href="mobile.css">
-  <link rel="stylesheet" href="studio.css">
-  <link rel="stylesheet" href="share-preview.css">
-  <link rel="stylesheet" href="example-gallery.css">
-  <link rel="stylesheet" href="preview-annotations.css">
-  <link rel="stylesheet" href="export-preview.css">
-  <link rel="stylesheet" href="phone-comparison.css">
-  <link rel="stylesheet" href="feature-tools.css">
-  <link rel="stylesheet" href="preview-frame.css">
-  <link rel="stylesheet" href="preview-help.css">
-  <link rel="stylesheet" href="simulator-shell.css">
-  <link rel="stylesheet" href="focus.css">
-  <link rel="stylesheet" href="embed-preview.css">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://duo-view.netlify.app/#website",
-        "name": "Duo View",
-        "url": "https://duo-view.netlify.app/",
-        "inLanguage": "en",
-        "publisher": { "@id": "https://duo-view.netlify.app/#author" }
-      },
-      {
-        "@type": "WebPage",
-        "@id": "https://duo-view.netlify.app/#webpage",
-        "url": "https://duo-view.netlify.app/",
-        "name": "Duo View — Foldable Website Preview & iPhone Duo Simulator",
-        "description": "Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.",
-        "inLanguage": "en",
-        "isPartOf": { "@id": "https://duo-view.netlify.app/#website" },
-        "mainEntity": { "@id": "https://duo-view.netlify.app/#app" }
-      },
-      {
-        "@type": "WebApplication",
-        "@id": "https://duo-view.netlify.app/#app",
-        "name": "Duo View",
-        "url": "https://duo-view.netlify.app/",
-        "description": "Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.",
-        "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "Web",
-        "browserRequirements": "JavaScript required. WebGL required for the 3D preview.",
-        "isAccessibleForFree": true,
-        "sameAs": ["https://github.com/SafaElmali/duo-view"],
-        "featureList": [
-          "Interactive 3D folding model",
-          "Folded and open website previews in portrait and landscape",
-          "Side-by-side Duo layouts and phone comparison",
-          "Editable viewport dimensions in CSS pixels",
-          "Live website preview with snapshot fallback",
-          "Shareable previews with notes and highlights",
-          "PNG image export and embeddable previews",
-          "Responsive examples and an interactive streaming demo"
-        ],
-        "softwareHelp": {
-          "@type": "WebPageElement",
-          "@id": "https://duo-view.netlify.app/#faq",
-          "url": "https://duo-view.netlify.app/#faq",
-          "name": "Duo View preview help",
-          "isPartOf": { "@id": "https://duo-view.netlify.app/#webpage" }
-        },
-        "image": "https://duo-view.netlify.app/assets/duo-view-social.png",
-        "isPartOf": { "@id": "https://duo-view.netlify.app/#website" },
-        "author": {
-          "@type": "Person",
-          "@id": "https://duo-view.netlify.app/#author",
-          "name": "Safa Elmali",
-          "url": "https://x.com/SafaElmali",
-          "sameAs": ["https://x.com/SafaElmali"]
-        }
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://duo-view.netlify.app/#website",
+      "name": "Duo View",
+      "url": "https://duo-view.netlify.app/",
+      "inLanguage": "en",
+      "publisher": {
+        "@id": "https://duo-view.netlify.app/#author"
       }
-    ]
-  }
-  </script>
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://duo-view.netlify.app/#webpage",
+      "url": "https://duo-view.netlify.app/",
+      "name": "Duo View \u2014 Your website, in every fold.",
+      "description": "A new perspective on responsive design. Explore your website on a foldable iPhone Duo concept with an interactive 3D preview.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://duo-view.netlify.app/#website"
+      },
+      "mainEntity": {
+        "@id": "https://duo-view.netlify.app/#app"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://duo-view.netlify.app/#app",
+      "name": "Duo View",
+      "url": "https://duo-view.netlify.app/studio/",
+      "description": "Preview your website on a foldable iPhone Duo concept. Explore 3D folds, compare responsive layouts, try the streaming demo, and share your view.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "JavaScript required. WebGL required for the 3D preview.",
+      "isAccessibleForFree": true,
+      "sameAs": [
+        "https://github.com/SafaElmali/duo-view"
+      ],
+      "featureList": [
+        "Interactive 3D folding model",
+        "Folded and open website previews in portrait and landscape",
+        "Side-by-side Duo layouts and phone comparison",
+        "Editable viewport dimensions in CSS pixels",
+        "Live website preview with snapshot fallback",
+        "Shareable previews with notes and highlights",
+        "PNG image export and embeddable previews",
+        "Responsive examples and an interactive streaming demo"
+      ],
+      "softwareHelp": {
+        "@type": "WebPageElement",
+        "@id": "https://duo-view.netlify.app/studio/#faq",
+        "url": "https://duo-view.netlify.app/studio/#faq",
+        "name": "Duo View preview help"
+      },
+      "image": "https://duo-view.netlify.app/assets/duo-view-social.png",
+      "isPartOf": {
+        "@id": "https://duo-view.netlify.app/#website"
+      },
+      "author": {
+        "@type": "Person",
+        "@id": "https://duo-view.netlify.app/#author",
+        "name": "Safa Elmali",
+        "url": "https://x.com/SafaElmali",
+        "sameAs": [
+          "https://x.com/SafaElmali"
+        ]
+      }
+    }
+  ]
+}
+</script>
+<script type="module" src="/home-route.mjs"></script>
 </head>
-<body>
-<a class="skip" href="#workspace">Skip to preview</a>
-<header class="app-header">
-  <a class="brand" href="./" aria-label="Duo View home"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M4 5 14 8v18L4 23Zm12 3 10-3v18l-10 3Z" fill="currentColor"/></svg><strong>duo<span>view</span></strong></a>
-  <div class="header-actions">
-    <a class="github-link" href="https://github.com/SafaElmali/duo-view" target="_blank" rel="noopener noreferrer" aria-label="Duo View on GitHub (opens in a new tab)">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.725-4.043-1.61-4.043-1.61-.546-1.386-1.333-1.755-1.333-1.755-1.09-.745.083-.729.083-.729 1.205.084 1.838 1.237 1.838 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.776.42-1.305.763-1.605-2.665-.303-5.466-1.332-5.466-5.93 0-1.31.468-2.38 1.235-3.22-.123-.303-.535-1.524.118-3.176 0 0 1.008-.322 3.301 1.23a11.52 11.52 0 0 1 3.003-.404c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.655 1.652.243 2.873.12 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.805 5.624-5.479 5.921.431.372.816 1.102.816 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.216.696.825.578C20.565 22.296 24 17.799 24 12.5c0-6.63-5.373-12-12-12Z"/></svg>
-      <span>GitHub</span>
-    </a>
-    <button class="text-button" id="about-button" aria-label="About this simulator">About<span class="about-label-suffix"> this simulator</span><span class="about-arrow" aria-hidden="true">↗</span></button>
-  </div>
-</header>
+<body class="studio">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header wrap">
+    <a class="wordmark" href="/" aria-label="Duo View home"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M4 5 14 8v18L4 23Zm12 3 10-3v18l-10 3Z" fill="currentColor"/></svg><span>duo<span class="wordmark-light">view</span></span></a>
+    <nav aria-label="Main navigation"><a href="#experience">The experience</a><a href="#perspectives">Every angle</a><a href="#questions">Questions</a></nav>
+    <a class="button header-cta" href="/studio/">Open Studio <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></a>
+  </header>
+  <main id="main">
+    <section class="studio-hero" aria-labelledby="hero-title">
+      <div class="hero-copy wrap">
+        <h1 id="hero-title">Your website,<br><span>in every fold.</span></h1>
+        <p>A new perspective on responsive design.<br>Meet your website on a screen that opens up.</p>
+        <div class="hero-actions"><a class="button primary" href="/studio/">Try Studio <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a><span class="free-note">Free to explore. No sign-up.</span></div>
+      </div>
+      <div class="device-showcase wrap" id="experience">
+        <div class="scene-note scene-note-left"><span class="status-dot"></span> A little perspective.<small>The same website. A whole new shape.</small></div>
+        <div class="model-stage" data-model data-initial="book" role="img" aria-label="Interactive 3D foldable phone showing the Field Notes demo website. Use the pose buttons or drag to rotate.">
+          <div class="model-fallback"><img src="/landing/assets/demo-wide.png" alt="Field Notes example website on an open display" width="1780" height="2076"></div>
+        </div>
+        <div class="scene-note scene-note-right"><span data-angle>145°</span><small>Made to move.</small></div>
+        <div class="pose-controls" role="group" aria-label="Device pose"><button data-pose="flat" aria-pressed="false">Open</button><button data-pose="book" aria-pressed="true">Book</button><button data-pose="tabletop" aria-pressed="false">Tabletop</button><button data-pose="folded" aria-pressed="false">Folded</button></div>
+        <p class="model-hint" data-model-status aria-live="polite">Drag to explore the 3D model</p>
+      </div>
+      <div class="hero-foot wrap"><span>Built for your next perspective.</span><span>3D exploration <i></i> Responsive previews <i></i> Shareable views</span></div>
+    </section>
+    <section class="perspectives-section section-space wrap" id="perspectives">
+      <div class="section-heading"><h2>One website.<br>More ways to see it.</h2><p>From pocket-sized to wide open. Catch the little things that change when your canvas does.</p></div>
+      <div class="perspective-stage">
+        <figure class="preview-device portrait"><div class="device-frame"><img src="/landing/assets/demo-folded.png" alt="Field Notes responsive demo in the folded portrait viewport" width="932" height="2400" loading="lazy"></div><figcaption>Folded portrait <span>466 × 678</span></figcaption></figure>
+        <figure class="preview-device open-portrait"><div class="device-frame"><img src="/landing/assets/demo-open.png" alt="Field Notes responsive demo in the open portrait viewport" width="1252" height="2400" loading="lazy"></div><figcaption>Open portrait <span>626 × 890</span></figcaption></figure>
+        <figure class="preview-device landscape"><div class="device-frame"><img src="/landing/assets/demo-wide.png" alt="Field Notes responsive demo in the open landscape viewport" width="1780" height="2076" loading="lazy"></div><figcaption>Open landscape <span>890 × 626</span></figcaption></figure>
+      </div>
+      <div class="section-foot"><span>Illustrative presets. Editable dimensions. Your own point of view.</span><a class="text-link" href="/studio/#duo=1&view=compare&content=website">Compare all four layouts <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a></div>
+    </section>
+    <section class="faq-section section-space wrap" id="questions"><div><h2>A little clarity,<br>before you fold.</h2><p>An independent experiment.<br>A useful new perspective.</p></div><div class="faq-list">
+      <details><summary>What is Duo View?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>A free responsive website preview with an illustrative foldable iPhone Duo model. Paste a URL, explore its layout in 3D or 2D, and compare open and folded views. No account required.</p></details>
+      <details><summary>Can I preview my own website?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Yes. Open the simulator and paste your URL. Sites that allow embedding can be interactive when the device is flat. Public sites that block embedding may use a scrollable snapshot captured by Microlink; snapshot links and videos are not interactive.</p></details>
+      <details><summary>Is this an official Apple simulator?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>No. Duo View is an independent project, unaffiliated with Apple. The model is illustrative and its viewport presets are estimates. Your website renders in your current browser, so this does not replace real-device or iOS Safari testing.</p></details>
+      <details><summary>Can I share what I’m seeing?<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Yes. Use Share in the simulator to copy a link with your website, layout, fold, orientation, and camera settings. The recipient gets a fresh preview; your scroll position and signed-in session aren’t shared.</p></details>
+    </div></section>
+    <section class="closing"><div class="wrap"><h2>See the other side<br>of your website.</h2><a class="button primary" href="/studio/">Open Studio <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></a><p>Just a URL. A little curiosity. A different view.</p></div></section>
+  </main>
+  <footer class="site-footer wrap"><a class="wordmark" href="/"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M4 5 14 8v18L4 23Zm12 3 10-3v18l-10 3Z" fill="currentColor"/></svg><span>duoview</span></a><p>An independent concept. Not affiliated with Apple.</p><a href="https://github.com/SafaElmali/duo-view" target="_blank" rel="noopener noreferrer">Made by Safa Elmali <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg></a></footer>
 
-<div id="preview-mode-menu" class="preview-mode-menu" popover="auto" role="menu" aria-label="Preview mode">
-  <p class="mode-menu-heading">PREVIEW MODE</p>
-  <button type="button" role="menuitemradio" aria-checked="true" data-preview-mode="embedded" tabindex="-1"><span class="mode-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg></span><span><strong>Auto preview</strong><small>Interactive when supported.<br>Snapshot if blocked or slow to load.</small></span><svg class="mode-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-  <button type="button" role="menuitemradio" aria-checked="false" data-preview-mode="snapshot" tabindex="-1"><span class="mode-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span><span><strong>Snapshot</strong><small>A scrollable image of the page.<br>Links and video aren’t interactive.</small></span><svg class="mode-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-  <p class="mode-menu-note">Snapshots are captured by Microlink.</p>
-</div>
-<div class="app-layout">
-
-<main class="workspace" id="workspace">
-<form class="url-bar" id="url-form">
-  <div class="workspace-intro"><h1>Preview a website.</h1><p>Paste a link. Explore every fold.</p></div><label for="site-url" class="url-label">Website address</label>
-  <div class="website-entry">
-    <div class="url-input-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg><input id="site-url" type="text" inputmode="url" spellcheck="false" autocomplete="url" placeholder="Paste your website URL" aria-describedby="url-error"><button type="button" id="reload" title="Reload preview" aria-label="Reload preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4v6h-6M19.4 9A8 8 0 1 0 20 16"/></svg></button></div>
-    <div class="mode-label"><select id="preview-mode" aria-label="Preview mode" title="Auto preview tries live embedding first and uses a Microlink snapshot when a public site blocks it or takes too long to load."><option value="embedded">Auto preview</option><option value="snapshot">Snapshot</option></select><button type="button" id="preview-mode-trigger" popovertarget="preview-mode-menu" aria-haspopup="menu" aria-controls="preview-mode-menu" aria-expanded="false" hidden><span class="mode-trigger-label">Auto preview</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button></div>
-    <button class="primary" type="submit">Preview<span class="preview-suffix"> on Duo</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></button>
-  </div>
-  <div class="demo-choices" role="group" aria-label="Screen content"><span class="demo-caption">Start exploring</span><div class="demo-segment"><button type="button" class="demo-button" id="demo" aria-label="Example website" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M7 6.5h.01m3 0h.01"/></svg>Example website</button><button type="button" class="demo-button streaming-demo" data-player-demo aria-label="Video demo" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m10 9 5 3-5 3V9Z"/></svg>Video demo</button><button type="button" id="example-gallery" class="examples-button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Examples</button></div></div>
-  <p class="error" id="url-error" role="alert" hidden></p>
-</form>
-<div class="workspace-toolbar"><div class="view-toggle segment" role="group" aria-label="Preview layout"><button class="active" data-view="three" aria-pressed="true">3D model</button><button data-view="single" aria-pressed="false">2D preview</button><button data-view="compare" aria-pressed="false"><span aria-hidden="true">⊞</span> Compare</button></div><button id="mobile-settings" class="mobile-settings-button" aria-haspopup="dialog" aria-controls="mobile-controls-dialog" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h8m4 0h4M4 17h3m4 0h9"/><circle cx="14" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Device settings</button><div class="toolbar-right"><span class="demo-tag" id="preview-status">Demo website</span><button id="share-preview" class="share-preview-button" aria-label="Share preview" title="Share, annotate, export, or embed this view" aria-haspopup="dialog" aria-controls="share-dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><span>Share</span></button><button id="fullscreen" class="icon-button" title="Expand preview" aria-label="Expand preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button></div></div>
-<div class="embed-notice" id="embed-notice" hidden><span><span id="embed-message">Checking whether this page allows live preview…</span><small>Public pages that block embedding or take too long are sent to Microlink for a scrollable snapshot.</small></span><button id="embed-fallback">Create snapshot</button></div><div class="snapshot-notice" id="snapshot-notice" hidden><span><span id="snapshot-reason">Scrollable snapshot</span> · Public URL rendered by <a href="https://microlink.io" target="_blank" rel="noopener noreferrer">Microlink</a>. No sign-in or clicking.</span><output id="snapshot-status">Ready</output></div>
-<div id="comparison-options" hidden></div>
-<div class="stage" id="stage"><section class="duo-three-scene" id="duo-three-scene" aria-label="3D iPhone Duo preview"><div class="duo-model-heading"><div><h2>iPhone Duo</h2><p id="duo-state-label">Open · Landscape</p></div><a class="duo-download" href="assets/iphone-duo.glb" download>Download model ↓</a></div><div class="duo-render-host" id="duo-render-host"><div class="duo-ground-shadow"></div><canvas></canvas><div class="duo-web-layer"></div><div class="duo-actions"><button class="duo-interact" aria-pressed="false" aria-describedby="duo-interaction-help">Use website</button><button class="duo-back" aria-pressed="false" title="Front view · Click to show back">Front / back</button><button class="duo-reset" aria-label="Reset 3D camera">Reset view</button></div><p class="duo-model-message" id="duo-interaction-help" role="status">Preparing 3D model…</p></div><div class="duo-three-footer"><span>Illustrative model · Drag to rotate · Arrow keys supported</span></div></section><div class="single-scene" id="single-scene"><div class="view-title"><h2 id="view-title">Folded · Portrait</h2><p id="view-subtitle">466 × 678 CSS px</p></div><div class="device-space" id="device-space"><div class="device" id="device"><div class="screen"><div class="browser-chrome" hidden><div class="status-bar"><span>9:41</span><span class="status-camera" aria-hidden="true"></span><span aria-hidden="true">▰</span></div><div class="browser-address"><span aria-hidden="true">aA</span><span id="browser-host">Demo website</span><span aria-hidden="true">↻</span></div></div><iframe id="site-frame" title="Your website on iPhone Duo" src="demo.html" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="hinge" aria-hidden="true" hidden></div><div class="browser-bottom" hidden><span aria-hidden="true"></span></div></div><span class="hardware-button" aria-hidden="true"></span></div></div><p class="stage-instruction">Scroll to explore the page. Links work in Live preview.</p></div><div class="comparison" id="comparison" hidden></div></div>
-<div class="workspace-footer"><span id="footer-state">Outer display · Portrait</span><span id="viewport-readout">Live viewport: 466 × 678</span><button class="inline-button" id="help-button">Website not showing?</button></div>
-<dialog id="share-dialog" aria-labelledby="share-title" aria-describedby="share-summary">
-  <div class="share-heading"><h2 id="share-title">Share this view</h2><button id="close-share" aria-label="Close sharing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
-  <p id="share-summary"></p>
-  <label id="share-link-field" for="share-link">Preview link<input id="share-link" type="text" readonly spellcheck="false" autocomplete="off"></label>
-  <button id="copy-share-link" class="primary">Copy link</button>
-  <p class="share-note">The link remembers your website URL, orientation, fold, viewport size, and camera view. It loads a fresh preview; scrolling, video progress, and signed-in sessions aren’t included.</p>
-  <p id="share-feedback" role="status" aria-live="polite"></p>
-  <div class="share-tools" role="group" aria-label="More ways to use this preview">
-    <button type="button" id="export-preview">Export image<span>Download a preview card</span></button>
-    <button type="button" id="annotate-preview">Add a note<span>Highlight and share an issue</span></button>
-    <button type="button" id="embed-preview">Embed<span>Add this view to your website</span></button>
-  </div>
-</dialog>
-</main>
-<aside class="sidebar" aria-label="Preview controls">
-<div class="inspector-title"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="5" y="4" width="22" height="24" rx="4"/><path d="M16 5v22"/></svg><div><h2>iPhone Duo</h2><p>Foldable concept</p></div></div><div class="basic-controls">
-<section class="control-section"><h2>Display</h2><div class="display-options" role="group" aria-label="Display state"><button class="display-option active" data-display="folded" aria-pressed="true"><span class="device-icon folded-icon" aria-hidden="true"></span><span><strong>Folded</strong><small>5.4″ outer display</small></span><span class="radio-mark" aria-hidden="true"></span></button><button class="display-option" data-display="open" aria-pressed="false"><span class="device-icon open-icon" aria-hidden="true"></span><span><strong>Open</strong><small>7.6″ inner display</small></span><span class="radio-mark" aria-hidden="true"></span></button></div></section>
-<section class="control-section"><h2>Orientation <kbd>R</kbd></h2><div class="segment orientation" role="group" aria-label="Orientation"><button class="active" data-orientation="portrait" aria-pressed="true"><span class="orientation-icon portrait-icon" aria-hidden="true"></span>Portrait</button><button data-orientation="landscape" aria-pressed="false"><span class="orientation-icon landscape-icon" aria-hidden="true"></span>Landscape</button></div></section>
-<section class="control-section model-controls" id="model-controls"><div class="pose-group"><h2>Pose</h2><div class="pose-options" role="group" aria-label="Phone pose"><button data-pose="tabletop" aria-pressed="true">Tabletop</button><button data-pose="book" aria-pressed="false">Book</button><button data-pose="flat" aria-pressed="false">Flat</button></div></div><div class="hinge-control"><h2>Hinge angle <output id="fold-angle-output" for="fold-angle">180°</output></h2><input id="fold-angle" type="range" min="0" max="180" value="180" aria-label="3D hinge opening angle"><div class="angle-ends"><span>Closed</span><span>Flat</span></div></div></section>
-</div><details class="advanced-settings"><summary>More settings<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg></summary><div class="advanced-content"><section class="control-section finish-section"><h2>Device finish</h2><div class="finish-options" role="group" aria-label="3D model finish"><button data-finish="white" aria-pressed="true" class="selected"><span class="finish-dot white"></span>Star White</button><button data-finish="night" aria-pressed="false"><span class="finish-dot night"></span>Night Sky</button></div></section><section class="control-section"><h2>Preview options</h2><label class="toggle-row" for="chrome-toggle"><span>Browser chrome</span><input type="checkbox" id="chrome-toggle"><span class="switch" aria-hidden="true"></span></label><label class="toggle-row" for="hinge-toggle"><span>Hinge guide</span><input type="checkbox" id="hinge-toggle" title="Optional overlay showing the fold position"><span class="switch" aria-hidden="true"></span></label></section>
-<section class="control-section dimensions"><h2>Viewport <span class="estimate">Estimated</span></h2><div class="dimension-inputs"><label>Width<input id="viewport-width" type="number" min="240" max="1600" step="1" value="466"></label><span aria-hidden="true">×</span><label>Height<input id="viewport-height" type="number" min="240" max="1600" step="1" value="678"></label></div><p>CSS pixels <button class="inline-button" id="reset-dimensions">Reset to preset</button></p><p class="dimension-provenance">Based on <a href="https://www.apple.com/iphone-duo/specs/" target="_blank" rel="noopener noreferrer">Apple’s display specs</a> ÷ an assumed 3× scale. Editable CSS estimates.</p><p id="dimension-error" class="field-error" role="alert" hidden></p></section>
-</div></details><div class="sidebar-bottom"><span class="note-icon" aria-hidden="true">i</span><p>A responsive preview in your browser. <button class="inline-button" id="limits-button">See what’s simulated.</button></p></div>
-</aside>
-</div>
-<details class="help-disclosure"><summary>Getting started &amp; preview help <span>Independent concept · Built by Safa Elmali</span></summary><footer class="preview-help" id="faq" aria-labelledby="faq-title">
-  <div class="preview-help-inner">
-    <div class="preview-help-intro">
-
-      <h2 id="faq-title">A little preview help.</h2>
-      <p class="preview-help-description">Duo View is a free, independent responsive website preview for designers and developers. Explore an illustrative foldable iPhone Duo in 3D, compare folded and open layouts, and share your preview. It runs in your browser with no account required.</p>
-      <p class="preview-help-contact">Questions or feedback?<br><a href="https://x.com/SafaElmali" target="_blank" rel="noopener noreferrer">Reach out to @SafaElmali on X <span aria-hidden="true">↗</span></a></p>
-    </div>
-    <div class="preview-help-questions">
-      <details id="preview-website">
-        <summary>How do I preview my website on iPhone Duo?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>Paste your website URL and select <strong>Preview on Duo</strong>, or choose a ready-made layout from <strong>Examples</strong>. Choose Folded or Open, switch between portrait and landscape, and adjust the hinge. <strong>Compare</strong> shows all four Duo layouts or a standard phone next to Duo.</p></div>
-      </details>
-      <details id="snapshot-fallback">
-        <summary>Why do some websites switch to a snapshot?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>Some websites block live embedding. Auto preview switches blocked or slow public pages to a scrollable image captured by Microlink at your selected display size. Snapshots use a fresh browser session, so they won’t include your sign-in. Local and private addresses stay in Live preview.</p></div>
-      </details>
-      <details id="preview-interaction">
-        <summary>Can I scroll and interact with the preview?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>Yes. While a public website is bent, choose <strong>Scroll preview</strong> to create a snapshot and scroll both halves together without changing the fold. To click links on an embeddable live website, choose <strong>Open flat</strong>; the phone flattens and enables interaction for you. Local pages use <strong>Use website</strong> to open flat directly. Snapshot links and media aren’t interactive. Try the Video demo for working playback controls.</p></div>
-      </details>
-      <details id="share-preview-help">
-        <summary>Can a shared link remember my website and orientation?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>Yes. Set up your website and orientation, then select <strong>Share → Copy link</strong>. The link remembers your website or example, display, orientation, hinge angle, viewport size, camera, and comparison settings. Use <strong>Add a note</strong> to describe and highlight an issue in 2D before sharing. Notes belong to that viewport; changing the page or its dimensions clears them. Each person gets a fresh preview; scrolling, video progress, and signed-in sessions aren’t included.</p></div>
-      </details>
-      <details id="export-embed-help">
-        <summary>Can I export or embed a preview?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>Choose <strong>Share → Export image</strong> for a PNG card in an open, folded, or tabletop frame. Public websites use a fresh capture, so the image may differ from your current session. Choose <strong>Share → Embed</strong> to copy an interactive preview into your website’s HTML. Visitors can fold, rotate, or open the full view.</p></div>
-      </details>
-      <details id="mobile-support">
-        <summary>Does Duo View work on mobile?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>Yes. On smaller screens, open <strong>Device settings</strong> to change the display, orientation, and hinge. Choose <strong>Rotate model</strong> and touch and drag to turn the phone. The 3D preview needs a browser with WebGL support; 2D preview is also available.</p></div>
-      </details>
-      <details id="viewport-estimates">
-        <summary>Where do the device dimensions come from?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>We use <a href="https://www.apple.com/iphone-duo/specs/" target="_blank" rel="noopener noreferrer">Apple’s published display resolutions</a>: 1398 × 2034 pixels outside and 1878 × 2670 inside. Dividing by an <strong>assumed 3× scale</strong> gives portrait presets of <strong>466 × 678</strong> and <strong>626 × 890 CSS pixels</strong>; landscape swaps width and height. The conversion is our assumption, and these sizes have not been validated in Safari on the device. Edit the viewport dimensions to test other sizes.</p></div>
-      </details>
-      <details id="independent-simulator">
-        <summary>Is Duo View an official Apple simulator?<span class="faq-icon" aria-hidden="true"></span></summary>
-        <div class="faq-answer"><p>No. Duo View is an independent project and isn’t affiliated with Apple. The phone is an illustrative concept with estimated, editable viewport sizes. Websites render in your current browser, so this is a way to explore responsive layouts, not a replacement for testing on real hardware or in iOS Safari.</p></div>
-      </details>
-    </div>
-  </div>
-</footer></details>
-<dialog id="mobile-controls-dialog" aria-labelledby="mobile-controls-title"><div class="mobile-settings-heading"><h2 id="mobile-controls-title">Device settings</h2><button id="close-mobile-settings" aria-label="Close device settings">Done</button></div></dialog>
-<dialog id="info-dialog" aria-labelledby="dialog-title"><button class="dialog-close" aria-label="Close information" id="close-dialog">×</button><h2 id="dialog-title">A new shape.<br>A familiar website.</h2><p>Enter a URL and choose Preview on Duo. Live preview shows interactive websites that allow embedding. If a public page blocks embedding, Duo View automatically uses a Microlink snapshot so you can scroll it directly on the device. Fold and rotate the model to inspect the layout.</p><div class="dialog-detail"><h3>What’s simulated</h3><p>The 3D model has an animated hinge, two finishes, and front/back inspection. The tabletop preset puts video above the hinge and playback controls below. The streaming player is an independent interactive demo using Sintel by Blender Foundation. Embeddable websites stay visible across the bend as two clipped page views. Choose Scroll preview to scroll a public page as a snapshot while keeping the fold, or Open flat to scroll and click the live website. Display size, orientation, responsive breakpoints, optional browser chrome, and a visual hinge guide. Folding switches between the outer and inner display; the guide doesn’t create separate screen segments.</p></div><div class="dialog-detail"><h3>How we estimate viewport sizes</h3><p>Apple lists 1398 × 2034 display pixels outside and 1878 × 2670 inside. We divide by an assumed 3× scale to get portrait presets of 466 × 678 and 626 × 890 CSS pixels; landscape swaps width and height. The display resolutions are published specifications, but the 3× conversion is our assumption. These editable estimates have not been validated as Safari viewport sizes on the device. Browser chrome and safe areas can change the usable viewport.</p></div><div class="dialog-detail"><h3>Snapshots</h3><p>Snapshot sends the public page URL and selected dimensions to Microlink. Scroll or swipe on the Duo screen to explore the captured page. In 3D, both halves scroll together even while the phone is bent. Choose Rotate model to adjust the camera, then Scroll preview to continue scrolling. It captures a fresh browser session, so it cannot show your signed-in pages, play media, or respond to clicks. Local and private addresses are not sent. Captures can be cached, rate-limited, or blocked by the destination site. Rotate or change the display size to request the matching layout.</p></div><div class="dialog-detail"><h3>Your browser does the rendering</h3><p>This isn’t iOS Safari emulation. The preview uses your current browser; it doesn’t change its user agent, pixel density, touch capabilities, or foldable-device APIs.</p></div><div class="dialog-detail"><h3>If a website doesn’t appear</h3><p>Duo View checks public pages for embedding restrictions and automatically switches blocked pages to a Microlink snapshot. If a public preview takes more than 15 seconds to finish loading, it also switches to a snapshot. You can choose Create snapshot manually at any time. Local and private URLs stay in Live preview. Websites can also require sign-in or block automated capture; in that case the preview reports the limitation. For your own website, allow embedding from the simulator’s origin. No new browser window is needed.</p></div><div class="dialog-footer"><a href="https://www.apple.com/iphone-duo/specs/" target="_blank" rel="noopener noreferrer">Apple display specifications ↗</a><span>Independent tool. Not affiliated with Apple.</span></div></dialog>
-
-<script type="module" src="viewer.js"></script>
-</body></html>
+</body>
+</html>

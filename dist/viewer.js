@@ -14,7 +14,7 @@ import {comparisonDevices,bindPhoneComparison} from './phone-comparison.mjs';
 import {bindPreviewEmbedding,initEmbeddedPreview} from './embed-preview.mjs';
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
-const demoUrl=new URL('demo.html',location.href).href;
+const demoUrl=new URL('demo.html',import.meta.url).href;
 const state={...DEFAULT_PREVIEW,content:'website',pose:'flat',foldAngle:180,finish:'white',orientation:'landscape',url:demoUrl};
 let modelViewer=null;
 let modePicker=null;

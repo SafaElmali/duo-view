@@ -5,7 +5,9 @@ import {readPreviewLink} from '../dist/share-preview.mjs';
 
 const root = new URL('../dist/', import.meta.url);
 const read = path => readFile(new URL(path, root), 'utf8');
-const html = await read('index.html');
+const html = await read('studio/index.html');
+const home = await read('index.html');
+const origin = 'https://duo-view.netlify.app/';
 const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)[1];
 const meta = (source, name) => source.match(new RegExp(`<meta (?:name|property)="${name}" content="([^"]*)"`))?.[1];
 
@@ -18,9 +20,9 @@ test('the sitemap points to the indexable canonical app and robots allows crawle
   assert.match(meta(html, 'robots'), /\bindex\b/);
   assert.doesNotMatch(meta(html, 'robots'), /noindex|nofollow|nosnippet/);
   assert.match(robots, /User-agent: \*\s+Allow: \//);
-  assert.ok(robots.includes(`Sitemap: ${canonical}sitemap.xml`));
+  assert.ok(robots.includes(`Sitemap: ${origin}sitemap.xml`));
   assert.doesNotMatch(robots, /^Disallow:\s*\S/m);
-  assert.deepEqual([...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]), [canonical]);
+  assert.deepEqual([...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]), [origin, canonical]);
 });
 
 test('fictional examples and the legacy launch page opt out of indexing without blocking crawling', async () => {
@@ -57,7 +59,8 @@ test('structured data connects the canonical page, app, site and creator without
   assert.equal(page['@type'], 'WebPage');
   assert.equal(app['@type'], 'WebApplication');
   assert.equal(site['@type'], 'WebSite');
-  for (const entity of [page, app, site]) assert.equal(entity.url, canonical);
+  for (const entity of [page, app]) assert.equal(entity.url, canonical);
+  assert.equal(site.url, origin);
   assert.equal(app.isPartOf['@id'], site['@id']);
   assert.equal(app.author['@id'], site.publisher['@id']);
   assert.equal(app.description, meta(html, 'description'));
@@ -82,7 +85,7 @@ test('the AI guide reuses visible product facts and its FAQ links coexist with s
   const guide = await read('llms.txt');
   const summary = html.match(/<p class="preview-help-description">([^<]+)<\/p>/)[1];
   assert.ok(guide.includes(`> ${summary}`));
-  assert.match(html, /<link rel="alternate" type="text\/plain" href="llms.txt"/);
+  assert.ok(html.includes('<link rel="alternate" type="text/plain" href="../llms.txt"'));
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length, 'Fragment IDs must be unique');
   const faqIds = [...html.matchAll(/<details id="([^"]+)"/g)].map(match => match[1]);
@@ -91,9 +94,17 @@ test('the AI guide reuses visible product facts and its FAQ links coexist with s
   for (const match of guide.matchAll(/\]\((https:[^)]+)\)/g)) {
     const url = new URL(match[1]);
     if (url.origin !== new URL(canonical).origin) continue;
-    assert.equal(url.pathname, '/');
+    assert.ok(['/', '/studio/'].includes(url.pathname));
     if (!url.hash) continue;
     assert.ok(ids.includes(url.hash.slice(1)), `Broken guide link: ${url.href}`);
     assert.equal(readPreviewLink(url.hash, {base: canonical, demoUrl: `${canonical}demo.html`}), null);
   }
 });
+
+ test('home has its own canonical metadata and routes visitors into Studio', () => {
+  assert.ok(home.includes('rel="canonical" href="'+origin+'"'));
+  assert.equal(meta(home, 'og:url'), origin);
+  assert.match(home, /href="\/studio\/"/);
+  assert.doesNotMatch(home, /class="variant-switch"/);
+  assert.ok(html.includes('href="../" aria-label="Duo View home"'));
+ });

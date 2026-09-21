@@ -1,3 +1,4 @@
+import {siteBase} from './routes.mjs';
 import {readPreviewLink} from './share-preview.mjs';
 import {validateSnapshotUrl} from './snapshot.mjs';
 
@@ -12,7 +13,7 @@ export function createEmbedUrl(previewUrl){
  // credentials, or a private access parameter in the app URL itself.
  validateSnapshotUrl(base.href);
  base.search='';
- if(!readPreviewLink(url.hash,{base:base.href,demoUrl:new URL('demo.html',base).href}))throw new Error('Create a preview link before embedding this view.');
+ if(!readPreviewLink(url.hash,{base:base.href,demoUrl:new URL('demo.html',siteBase(base.href)).href}))throw new Error('Create a preview link before embedding this view.');
  url.search='';url.searchParams.set('embed','1');
  return url.href;
 }

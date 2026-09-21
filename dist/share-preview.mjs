@@ -1,3 +1,4 @@
+import {studioUrl} from './routes.mjs';
 import {normalizeUrl,validDimension} from './simulator.mjs';
 import {validateSnapshotUrl} from './snapshot.mjs';
 import {matchExampleUrl,resolveExampleUrl} from './example-gallery.mjs';
@@ -10,8 +11,8 @@ const invalid=()=>new Error('This preview link is incomplete or invalid. Ask the
 
 export function shareBase(href){
  const base=new URL(href);
- if(base.protocol==='file:'||base.hostname==='localhost'||base.hostname.endsWith('.localhost')||base.hostname==='127.0.0.1'||base.hostname==='[::1]')return 'https://duo-view.netlify.app/';
- base.search='';base.hash='';return base.href;
+ if(base.protocol==='file:'||base.hostname==='localhost'||base.hostname.endsWith('.localhost')||base.hostname==='127.0.0.1'||base.hostname==='[::1]')return 'https://duo-view.netlify.app/studio/';
+ return studioUrl(base.href);
 }
 
 function publicWebsite(raw,base,mode){

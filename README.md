@@ -30,6 +30,15 @@ Explore an animated 3D folding model, scroll full-page website snapshots across 
 
 Run `node scripts/serve.mjs` and open http://127.0.0.1:4317. This dependency-free Node.js 22+ server serves the app, the embedding check, and byte-range video playback. A plain static server still supports manual snapshots, but automatic fallback requires the included server or Netlify Functions. Run `node --test tests/*.test.mjs` for validation.
 
+## Landing page variants
+
+Two product launch pages are available alongside the simulator:
+
+- **Home:** http://127.0.0.1:4317/ — the product showcase with four interactive device poses.
+- **Unfold:** http://127.0.0.1:4317/landing/unfold/ — a bold typographic launch page with a continuous hinge control.
+
+The home page opens Focus at `/studio/`. The alternate Unfold concept remains at its draft route. Both showcase pages share the original 3D model, support keyboard rotation and reduced motion, and show a static example if WebGL is unavailable. No build step or new runtime dependency is required. Landing assets and provenance are in `dist/landing/assets/`.
+
 ## Deploy to Netlify
 
 Connect this repository to Netlify. The included `netlify.toml` runs the tests and publishes `dist`; no environment variables or API keys are required. Changes pushed to `main` deploy automatically once the repository is connected. The `embed-check` Netlify Function checks public pages for embedding restrictions; no third-party credentials are required.
@@ -40,7 +49,7 @@ The app includes SEO metadata, social cards, linked structured data, a canonical
 
 ## Simulator workspace
 
-The simulator at `/` uses Focus: a neutral inspection canvas with device controls in a right inspector. Older `?layout=focus` and `?layout=workbench` links also open Focus.
+The simulator at `/studio/` uses Focus: a neutral inspection canvas with device controls in a right inspector. Older `?layout=focus` and `?layout=workbench` links also open Focus.
 
 The example website opens by default, with advanced controls under **More settings**. On mobile, **Device settings** opens the shared control sheet. The shell styles live in `dist/simulator-shell.css` and `dist/focus.css`; `dist/viewer.js` runs the preview. The existing shared-link format is unchanged.
 
@@ -72,3 +81,9 @@ Model verification includes endpoint geometry and screen-facing checks, all four
 ## In-device preview verification
 
 Verified Madisson Gold’s response blocks live embedding (`frame-ancestors none`, `X-Frame-Options: DENY`). Captured its public page at 626 × 890 through Microlink and verified the image appears across the tabletop hinge. Captures use an actual matching browser viewport and deviceScaleFactor 1, and reject mismatched widths or invalid image dimensions. Before capture, a script in Microlink’s browser changes `content-visibility: auto` sections to `visible` and eagerly requests native lazy images that occupy space in the page, followed by a three-second settling period. This prevents offscreen product cards from becoming empty areas in the static image, while preserving intentionally hidden content. Full-page captures preserve the viewport while extending the image vertically; both model halves use the same clamped scroll offset. Snapshot images cannot accept cookies, click links, trigger further lazy loading as you scroll, play video, or reproduce a signed-in session. Content loaded only through JavaScript scrolling, slow requests, or nested scrollers can still be incomplete. Provider failures and rate limits remain possible. API references: https://microlink.io/docs/api/parameters/screenshot/fullPage and https://microlink.io/docs/api/parameters/viewport, https://microlink.io/docs/api/parameters/scripts, and https://microlink.io/docs/api/parameters/waitForTimeout.
+
+### Public routes
+
+- `/` — Duo View home and interactive product showcase.
+- `/studio/` — Focus simulator, including sharing, examples, export, and embeds.
+- `/landing/` redirects to `/`. Existing root preview links retain their settings and open Studio.

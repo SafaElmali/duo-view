@@ -10,6 +10,8 @@ const types={'.html':'text/html; charset=utf-8','.txt':'text/plain; charset=utf-
 createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,`http://${req.headers.host}`);
+  const redirect={'/studio':'/studio/','/landing':'/','/landing/':'/','/landing/index.html':'/'}[url.pathname];
+  if(redirect){res.writeHead(301,{Location:redirect+url.search}).end();return;}
   if(url.pathname==='/.netlify/functions/embed-check'){
    let body='';for await(const chunk of req){body+=chunk;if(body.length>4096){res.writeHead(413).end();return;}}
    const result=await handleEmbedCheck(new Request(url,{method:req.method,...(!['GET','HEAD'].includes(req.method)?{body}:{}),headers:req.headers}));

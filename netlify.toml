@@ -18,3 +18,23 @@
   for = "/assets/iphone-duo.glb"
   [headers.values]
     Content-Type = "model/gltf-binary"
+
+[[redirects]]
+  from = "/landing"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/landing/"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/landing/index.html"
+  to = "/"
+  status = 301
+  force = true
+
+# Netlify serves /studio/index.html and canonicalizes its directory URL.

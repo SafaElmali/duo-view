@@ -3,4 +3,7 @@
   <url>
     <loc>https://duo-view.netlify.app/</loc>
   </url>
+  <url>
+    <loc>https://duo-view.netlify.app/studio/</loc>
+  </url>
 </urlset>

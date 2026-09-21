@@ -1,8 +1,9 @@
+import {siteBase} from './routes.mjs';
 import {matchExampleUrl} from './example-gallery.mjs';
 
 export const PRESETS = Object.freeze({folded:{width:466,height:678},open:{width:626,height:890}});
 export function isBuiltInWebsite(raw,base){
-  try{return new URL(raw).href===new URL('demo.html',base).href||Boolean(matchExampleUrl(raw,base));}catch{return false;}
+  try{return new URL(raw).href===new URL('demo.html',siteBase(base)).href||Boolean(matchExampleUrl(raw,base));}catch{return false;}
 }
 export function dimensions(display,orientation,chrome=false,custom=null){
   if(!Object.hasOwn(PRESETS,display)||!['portrait','landscape'].includes(orientation))throw new Error('Invalid device configuration.');
