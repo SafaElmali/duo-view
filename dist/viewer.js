@@ -15,7 +15,7 @@ import {bindPreviewEmbedding,initEmbeddedPreview} from './embed-preview.mjs';
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const demoUrl=new URL('demo.html',location.href).href;
-const state={...DEFAULT_PREVIEW,url:demoUrl};
+const state={...DEFAULT_PREVIEW,content:'website',pose:'flat',foldAngle:180,finish:'white',orientation:'landscape',url:demoUrl};
 let modelViewer=null;
 let modePicker=null;
 let modelFailed=false;
@@ -110,7 +110,7 @@ function update(){
   selected('data-pose',state.pose);
   selected('data-finish',state.finish);
   $$('[data-player-demo]').forEach(button=>button.setAttribute('aria-pressed',String(state.content==='player')));
-  $('#demo').setAttribute('aria-pressed',String(state.content==='website'));
+  $('#demo').setAttribute('aria-pressed',String(state.content==='website'&&isDemo()));
   $('#preview-status').textContent=sourceName();
   $('#duo-render-host').classList.toggle('tabletop-pose',state.pose==='tabletop');
   $('#fold-angle').value=String(state.foldAngle);
@@ -201,7 +201,7 @@ function loadWebsite(url){
 function urlError(message){track('duo_preview_validation_failed');$('#url-error').textContent=message;$('#url-error').hidden=false;$('#site-url').setAttribute('aria-invalid','true');}
 $('#url-form').addEventListener('submit',event=>{event.preventDefault();try{const url=normalizeUrl($('#site-url').value,location.href,{embedded:state.mode==='embedded'});loadWebsite(url);$('#site-url').removeAttribute('aria-invalid');}catch(error){urlError(error.message);}});
 $('#demo').addEventListener('click',()=>{
- state.content='website';
+ loadWebsite(demoUrl);
  $('#url-error').hidden=true;$('#site-url').removeAttribute('aria-invalid');
  update();
 });

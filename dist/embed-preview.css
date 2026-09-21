@@ -25,7 +25,7 @@
 body:has(.embed-preview-dialog[open]){overflow:hidden}
 
 body.is-embedded-preview{display:flex;flex-direction:column;width:100%;height:100dvh;min-height:0;overflow:hidden;background:#eef2f8}
-.is-embedded-preview>.app-header,.is-embedded-preview>.url-bar,.is-embedded-preview>.preview-help,.is-embedded-preview .sidebar,.is-embedded-preview .workspace-toolbar,.is-embedded-preview .workspace-footer,.is-embedded-preview .duo-model-heading,.is-embedded-preview .duo-three-footer,.is-embedded-preview .phone-comparison-controls,.is-embedded-preview .preview-annotation-reader .preview-annotation-actions{display:none!important}
+.is-embedded-preview>.app-header,.is-embedded-preview .url-bar,.is-embedded-preview>.help-disclosure,.is-embedded-preview>.preview-help,.is-embedded-preview .sidebar,.is-embedded-preview .workspace-toolbar,.is-embedded-preview .workspace-footer,.is-embedded-preview .duo-model-heading,.is-embedded-preview .duo-three-footer,.is-embedded-preview .phone-comparison-controls,.is-embedded-preview .preview-annotation-reader .preview-annotation-actions{display:none!important}
 .is-embedded-preview .app-layout,.is-embedded-preview .app-layout:has(.duo-three-scene:not([hidden])){display:flex;flex:1;grid-template-columns:none;width:100%;height:auto;min-height:0;overflow:hidden}
 .is-embedded-preview .workspace{flex:1;min-width:0;min-height:0}
 .is-embedded-preview .stage{height:auto;min-height:0;flex:1;overflow:auto}
